@@ -1,0 +1,448 @@
+=============
+JDBC TUTORIAL
+=============
+
+Introduction:
+=============
+- JDBC stands for Java Database Connectivity. 
+- JDBC is a Java API to connect and execute the query with the database, and processing the results.
+- It is a part of JavaSE (Java Standard Edition). 
+
+
+
+JDBC - Types of Drivers:
+========================
+JDBC API uses JDBC drivers to connect with the database. There are four types of JDBC drivers:
+
+1. JDBC-ODBC bridge driver:
+---------------------------
+Concept:
+The JDBC-ODBC bridge driver uses ODBC driver to connect to the database. The JDBC-ODBC bridge driver converts JDBC method calls into the ODBC function calls. This is now discouraged because of thin driver.
+In this type, a JDBC bridge is used to access ODBC drivers installed on each client machine. Using ODBC requires configuring on your system a Data Source Name (DSN) that represents the target database.
+
+Advantages:
+easy to use.
+can be easily connected to any database.
+
+Disadvantages:
+Performance degraded because JDBC method call is converted into the ODBC function calls.
+The ODBC driver needs to be installed on the client machine.
+
+
+2. Native-API driver (partially java driver)
+--------------------------------------------
+Concept:
+The Native API driver uses the client-side libraries of the database. The driver converts JDBC method calls into native calls of the database API. It is not written entirely in java
+
+Advantage:
+performance upgraded than JDBC-ODBC bridge driver.
+
+Disadvantage:
+The Native driver needs to be installed on the each client machine.
+The Vendor client library needs to be installed on client machine.
+If we change the Database we have to change the native API as it is specific to a database.
+
+
+3. Network Protocol driver (fully java driver)
+----------------------------------------------
+Concept:
+The Network Protocol driver uses middleware (application server) that converts JDBC calls directly or indirectly into the vendor-specific database protocol. It is fully written in java.
+
+Advantage:
+No client side library is required because of application server that can perform many tasks like auditing, load balancing, logging etc.
+Disadvantages:
+
+Network support is required on client machine.
+Requires database-specific coding to be done in the middle tier.
+Maintenance of Network Protocol driver becomes costly because it requires database-specific coding to be done in the middle tier.
+
+
+4. Thin driver (fully java driver)
+----------------------------------
+Concept:
+The thin driver converts JDBC calls directly into the vendor-specific database protocol. That is why it is known as thin driver. It is fully written in Java language.
+
+Advantage:
+Better performance than all other drivers.
+No software is required at client side or server side.
+
+Disadvantage:
+Drivers depends on the Database.
+
+
+Which Driver should be used?
+----------------------------
+- If you are accessing one type of database, such as Oracle, Sybase, or IBM, the preferred driver type is 4.
+- If your Java application is accessing multiple types of databases at the same time, type 3 is the preferred driver.
+- Type 2 drivers are useful in situations where a type 3 or type 4 driver is not available yet for your database.
+- The type 1 driver is not considered a deployment-level driver and is typically used for development and testing purposes only.
+
+
+
+Components of JDBC:
+===================
+The JDBC API provides the following interfaces and classes:
+
+    * DriverManager : 
+	    This interface manages a list of database drivers. Matches connection requests from the java application with the proper database driver using communication subprotocol. The first driver that recognizes a certain subprotocol under JDBC will be used to establish a database Connection.
+    * Driver : 
+	    This interface handles the communications with the database server. You will interact directly with Driver objects very rarely. Instead, you use DriverManager objects, which manages objects of this type. It also abstracts the details associated with working with Driver objects
+    * Connection : 
+	    Interface with all methods for contacting a database. The connection object represents communication context, i.e., all communication with database is through connection object only.
+    * Statement : 
+	    You use objects created from this interface to submit the SQL statements to the database. Some derived interfaces accept parameters in addition to executing stored procedures.
+    * ResultSet : 
+	    These objects hold data retrieved from a database after you execute an SQL query using Statement objects. It acts as an iterator to allow you to move through its data.
+    * SQLException : 
+    	    This class handles any errors that occur in a database application.
+
+
+
+
+
+SQL Syntax:
+-----------
+
+Create Database:
+----------------
+Used to create a new database.
+   syntax:	CREATE DATABASE DATABASE_NAME;
+   Example:	CREATE DATABASE EMP;
+
+
+Drop Database:
+--------------
+Used to delete an existing database.
+   syntax:	DROP DATABASE DATABASE_NAME;
+   Example:	DROP DATABASE EMP;
+
+
+Create Table:
+-------------
+Used to create a new table.
+   syntax:	CREATE TABLE table_name
+		(
+		  column_name column_data_type,
+		  column_name column_data_type,
+		  column_name column_data_type
+		  ...
+		);
+
+   Example:	CREATE TABLE Employees
+		(
+		  id INT NOT NULL,
+		  age INT NOT NULL,
+		  first VARCHAR(255),
+		  last VARCHAR(255),
+		  PRIMARY KEY (id)
+		);
+
+Drop Table:
+-----------
+Used to delete an existing table.
+   syntax:	DROP TABLE table_name;
+   Example:	DROP TABLE Employees;
+
+INSERT Data:
+------------
+Approach 1:
+-----------	
+   syntax:	INSERT INTO table_name (column1, column2, ...) VALUES (value1, value2, ...);
+   Example:	INSERT INTO Employees (id, age, first, last)VALUES (100, 18, 'Zara', 'Ali');
+Approach 2:
+-----------	
+   syntax:	INSERT INTO table_name VALUES (value1, value2, ...);
+   Example:	INSERT INTO Employees VALUES (100, 18, 'Zara', 'Ali');
+
+
+SELECT Data:
+------------
+Used to retrieve data from a database.
+   syntax:	SELECT column_name, column_name, ... FROM table_name WHERE conditions;
+   Example:	SELECT first, last, age FROM Employees WHERE id = 100;
+
+
+UPDATE Data:
+------------
+Used to update data in a table.
+   syntax:	UPDATE table_name SET col_name = value, col_name = value, ... WHERE conditions;
+   Example:	UPDATE Employees SET age=20 WHERE id=100;
+
+DELETE Data:
+------------
+Used to delete data from tables.
+   syntax:	DELETE FROM table_name WHERE conditions;
+   Example:	DELETE FROM Employees WHERE id=100;
+
+
+
+
+
+Steps involved in JDBC application:
+===================================
+1. Importing packages
+2. Registering and Loading the Driver
+3. Connecting to the Database
+4. Creating a Statement
+5. Executing the Statement
+6. Handling SQL Exception
+
+
+Sample Code:
+------------
+
+import java.sql.*;  // Step 1. Import required packages
+
+public class FirstExample {
+  // JDBC driver name and database URL
+  static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+  static final String DB_URL = "jdbc:mysql://localhost/EMP";
+
+  // Database credentials
+  static final String USER = "username";
+  static final String PASS = "password";
+  public static void main(String[] args) {
+   
+    Connection conn = null;
+    Statement stmt = null;
+    try {
+      Class.forName("com.mysql.jdbc.Driver");  // Step 2: Register JDBC driver
+
+      conn = DriverManager.getConnection(DB_URL,USER,PASS);  // Step 3: Open a connection
+
+      
+      stmt = conn.createStatement();  // Step 4: Creating a statement Execute a query
+      
+	  String sql = "SELECT id, first, last, age FROM Employees";
+      ResultSet rs = stmt.executeQuery(sql);  // Step 5: Executing a query
+
+      // Step 6: Extract data from result set
+      while(rs.next()) {
+        int id  = rs.getInt("id");
+        int age = rs.getInt("age");
+        String first = rs.getString("first");
+        String last = rs.getString("last");
+
+        //Display values
+	  }
+
+      rs.close();    stmt.close();    conn.close();
+    } catch(SQLException se) {
+      se.printStackTrace(); // Handle errors for JDBC
+    } catch(Exception e) {
+      e.printStackTrace(); // Handle errors for Class.forName
+    } finally {
+      // finally block used to close resources
+      try {
+        if(stmt!=null)
+          stmt.close();
+      } catch(SQLException se2){
+      }// nothing we can do
+      try{
+         if(conn!=null)
+            conn.close();
+      } catch(SQLException se) {
+         se.printStackTrace();
+      }
+    }
+  System.out.println("Goodbye!");
+  }
+}
+
+
+
+Registering JDBC Driver:
+------------------------
+There are different ways in registering and loading the driver.
+1. Using forName() method
+     Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+2. Using registerDriver() method
+	 Driver d = new sun.jdbc.odbc.JdbcOdbcDriver();
+	 DriverManager.registerDriver(d);
+3. By manually setting property
+	 java -Djdbc.drivers = sun.jdbc.odbc.JdbcOdbcDriver SampleApplication
+
+
+Opening a connection:
+---------------------
+Connection conn 
+    = DriverManager.getConnection(String <url>);
+	= DriverManager.getConnection(String <url>, String <username>, String <password>);
+	= DriverManager.getConnection(String <url>, Properties <properties>);
+
+
+Creating a statement:
+---------------------
+In JDBC, there are different ways to create statement object depending on the scenario/requirement.
+
+
+Statement:
+----------
+Used for general-purpose access to your database. Useful when you are using static SQL statements at runtime. The Statement interface cannot accept parameters.
+Eg:
+Statement stmt = conn.createStatement();
+boolean execute (String SQL): to execute SQL DDL statements or when you need to use truly dynamic SQL.
+int executeUpdate (String SQL): an INSERT, UPDATE, or DELETE statement.
+ResultSet executeQuery (String SQL): Use this method when you expect to get a result set, as you would with a SELECT statement.
+
+
+PreparedStatement:
+------------------
+Use this when you plan to use the SQL statements many times. The PreparedStatement interface accepts input parameters at runtime.
+Eg:
+  String SQL = "Update Employees SET age = ? WHERE id = ?";
+  PreparedStatement pstmt = conn.prepareStatement(SQL);
+  pstmt.setInt(1, 35);  // This would set age
+  pstmt.setInt(2, 102); // This would set ID
+  int rows = stmt.executeUpdate();
+  System.out.println("Rows impacted : " + rows );
+
+
+CallableStatement:
+------------------
+Used when you want to access the database stored procedures. The CallableStatement interface can also accept runtime input parameters.
+
+Example:
+
+Stored Procedure:
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `EMP`.`getEmpName` $$
+CREATE PROCEDURE `EMP`.`getEmpName` 
+   (IN EMP_ID INT, OUT EMP_FIRST VARCHAR(255))
+BEGIN
+   SELECT first INTO EMP_FIRST
+   FROM Employees
+   WHERE ID = EMP_ID;
+END $$
+DELIMITER ;
+
+
+Java Code Sample:
+
+String sql = "{call getEmpName (?, ?)}";
+cllblStmt = conn.prepareCall(sql);
+
+// Bind IN parameter first, then bind OUT parameter
+int empID = 102;
+cllblStmt.setInt(1, empID); // This would set ID as 102
+cllblStmt.registerOutParameter(2, java.sql.Types.VARCHAR); // Because second parameter is OUT so register it
+
+// Use execute method to run stored procedure.
+cllblStmt.execute();
+
+//Retrieve employee name with getXXX method
+String empName = cllblStmt.getString(2);
+System.out.println("Emp Name with ID:" + empID + " is " + empName);
+
+
+
+
+RESULTSET:
+----------
+
+Type of ResultSet:
+==================
+ResultSet.TYPE_FORWARD_ONLY:
+ - The cursor can only move forward in the result set.
+
+ResultSet.TYPE_SCROLL_INSENSITIVE:
+ - The cursor can scroll forward and backward, and the result set is not sensitive to changes made by others to the database that occur after the result set was created.
+
+ResultSet.TYPE_SCROLL_SENSITIVE:
+ - The cursor can scroll forward and backward, and the result set is sensitive to changes made by others to the database that occur after the result set was created.
+
+
+Concurrency of ResultSet:
+=========================
+ResultSet.CONCUR_READ_ONLY:
+ - Creates a read-only result set. This is the default
+
+ResultSet.CONCUR_UPDATABLE
+ - Creates an updateable result set.
+
+
+Cursor State of Resultset:
+==========================
+-  HOLD_CURSOR_OVER_COMMIT
+-  HOLD_CURSOR_AT_COMMIT
+
+
+
+JDBC - Transactions:
+====================
+Your JDBC Connection is in auto-commit mode, by default
+
+conn.setAutoCommit(false);
+conn.commit();
+conn.rollback();
+
+Using Savepoints:
+-----------------
+When you set a savepoint you define a logical rollback point within a transaction. If an error occurs past a savepoint, you can use the rollback method to undo either all the changes or only the changes made after the savepoint.
+
+setSavepoint(String savepointName):
+Defines a new savepoint. It also returns a Savepoint object.
+
+releaseSavepoint(Savepoint savepointName):
+Deletes a savepoint. Notice that it requires a Savepoint object as a parameter. This object is usually a savepoint generated by the setSavepoint() method.
+
+rollback(String savepointName):
+method rolls back work to the specified savepoint.
+
+
+JDBC - Batch Processing:
+========================
+The addBatch() method of Statement, PreparedStatement, and CallableStatement is used to add individual statements to the batch. The executeBatch() is used to start the execution of all the statements grouped together.
+
+The executeBatch() returns an array of integers, and each element of the array represents the update count for the respective update statement.
+
+Just as you can add statements to a batch for processing, you can remove them with the clearBatch() method. This method removes all the statements you added with the addBatch() method. However, you cannot selectively choose which statement to remove.
+
+
+Here is a typical sequence of steps to use Batch Processing with Statement Object −
+
+ - Create a Statement object using either createStatement() methods.
+ - Set auto-commit to false using setAutoCommit().
+ - Add as many as SQL statements you like into batch using addBatch() method on created statement object.
+ - Execute all the SQL statements using executeBatch() method on created statement object.
+ - Finally, commit all the changes using commit() method.
+
+
+
+
+BATCH UPDATES:
+--------------
+ -- Group of 'update' statements.
+ -- To work with batch updates, setAutoCommit(false) must be executed.
+	conn.setAutoCommit(false);
+	Statement stmt = conn.createStatment();    or
+	PreparedStatement stmt = conn.prepareStatment();
+/*
+	stmt.addBatch();		// To add a statement to the batch
+	stmt.executeBatch();		// To execute a batch
+	stmt.clearBatch();		// To clear the batch
+*/
+	stmt.addBatch("insert into product (id, desc) values (101, "Printer")");
+	stmt.addBatch("insert into product (id, desc) values (102, "Scanner")");
+	int[] updcount = stmt.executeBatch();
+
+
+
+ResultSetMetaData Interface:
+============================
+ResultSetMetaData rsmd=resultSet.getMetaData();
+public int getColumnCount()throws SQLException - it returns the total number of columns in the ResultSet object.
+public String getColumnName(int index)throws SQLException - it returns the column name of the specified column index.
+public String getColumnTypeName(int index)throws SQLException - it returns the column type name for the specified index.
+public String getTableName(int index)throws SQLException - it returns the table name for the specified column index.
+
+
+DatabaseMetaData interface:
+===========================
+DatabaseMetaData dbmd=connection.getMetaData();
+public String getDriverName()throws SQLException: it returns the name of the JDBC driver.
+public String getDriverVersion()throws SQLException: it returns the version number of the JDBC driver.
+public String getUserName()throws SQLException: it returns the username of the database.
+public String getDatabaseProductName()throws SQLException: it returns the product name of the database.
+public String getDatabaseProductVersion()throws SQLException: it returns the product version of the database.
+public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types)throws SQLException: it returns the description of the tables of the specified catalog. The table type can be TABLE, VIEW, ALIAS, SYSTEM TABLE, SYNONYM etc.
