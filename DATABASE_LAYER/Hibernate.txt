@@ -1,0 +1,1018 @@
+===============
+HIBERNATE - ORM
+===============
+
+What/Why Hibernate:
+===================
+- Hibernate is an Object-Relational Mapping (ORM) solution for JAVA
+- Maps Java classes to database tables and Java data types to SQL data types
+- It relieves the developer from 95% of common data persistence related programming tasks.
+
+Advantages:
+===========
+- Hibernate takes care of mapping Java classes to database tables using XML files and without writing any line of code.
+- Provides simple APIs for storing and retrieving Java objects directly to and from the database.
+- If there is change in the database or in any table, then you need to change the XML file properties only.
+- Hibernate does not require an application server to operate.
+- Manipulates Complex associations of objects of your database.
+
+
+Hibernate Architecture:
+=======================
+https://www.tutorialspoint.com/hibernate/images/hibernate_architecture.jpg
+
+
+Configuration Object:
+---------------------
+- First Hibernate object you create in any Hibernate application. 
+- Usually created only once during application initialization. 
+- Represents a configuration or properties file required by the Hibernate.
+- Two keys components
+  - Database Connection - hibernate.properties or hibernate.cfg.xml
+  - Class Mapping Setup - applicationname.hbm.xml
+
+SessionFactory Object:
+----------------------
+- The SessionFactory is a heavyweight object. 
+- Thread safe object and used by all the threads of an application.
+- You would need one SessionFactory object per database using a separate configuration file. 
+- So, if you are using multiple databases, then you would have to create multiple SessionFactory objects and multiple configuration files.
+
+Session Object:
+---------------
+- Used to get physical connection with a database.
+- Lightweight and instantiated each time when an interaction is needed with the database.
+- Persistent objects are saved and retrieved through a Session object.
+- The session objects should not be kept open for a long time because they are not usually thread safe and they should be created when needed and destroyed as soon as its job is completed.
+
+Transaction Object:
+-------------------
+- A Transaction represents a unit of work with the database.
+- This is an optional object and user may choose not to use this interface, instead managing transactions in their own application code.
+
+Query Object:
+-------------
+- Query objects use SQL or Hibernate Query Language (HQL) string to retrieve data from the database and create objects. 
+- A Query instance is used to bind query parameters, limit the number of results returned by the query, and finally to execute the query.
+
+Criteria Object:
+----------------
+- Criteria objects are used to create and execute object oriented criteria queries to retrieve objects.
+
+
+
+
+Hibernate - Configuration:
+==========================
+
+Hibernate Properties:
+---------------------
+hibernate.dialect:	This property makes Hibernate generate the appropriate SQL for the chosen database.
+hibernate.connection.driver_class:	The JDBC driver class.
+hibernate.connection.url:	The JDBC URL to the database instance.
+hibernate.connection.username:	The database username.
+hibernate.connection.password:	The database password.
+hibernate.connection.pool_size:	Limits the number of connections waiting in the Hibernate database connection pool.
+hibernate.connection.autocommit:	Allows autocommit mode to be used for the JDBC connection.
+
+Example:
+--------
+<hibernate-configuration>
+   <session-factory>
+      <property name = "hibernate.dialect"> org.hibernate.dialect.MySQLDialect </property>
+      <property name = "hibernate.connection.driver_class"> com.mysql.jdbc.Driver </property>
+      
+      <!-- Assume my_database is the database name -->
+      <property name = "hibernate.connection.url"> jdbc:mysql://localhost/my_database </property>
+      <property name = "hibernate.connection.username"> root </property>
+      <property name = "hibernate.connection.password"> root123 </property>
+      
+      <!-- List of XML mapping files -->
+      <mapping resource = "Employee.hbm.xml"/>
+      
+   </session-factory>
+</hibernate-configuration>
+
+
+
+Hibernate - Sessions:
+=====================
+Instances may exist in one of the following three states at a given point in time −
+
+Transient:
+  − A new instance of a persistent class, which is not associated with a Session and has no representation in the database and no identifier value is considered transient by Hibernate.
+
+Persistent:
+  − You can make a transient instance persistent by associating it with a Session. 
+  - A persistent instance has a representation in the database, an identifier value and is associated with a Session.
+
+Detached:
+  − Once we close the Hibernate Session, the persistent instance will become a detached instance.
+
+
+
+Hibernate - Persistent Class:
+=============================
+Java POJO(Plain Old Java Object) classes whose objects or instances will be stored in database tables are called persistent classes in Hibernate.
+
+There are following main rules of persistent classes, however, none of these rules are hard requirements.
+- All Java classes that will be persisted need a default constructor.
+- All classes should contain an ID in order to allow easy identification of your objects within Hibernate and the database. This property maps to the primary key column of a database table.
+- All attributes that will be persisted should be declared private and have getXXX and setXXX methods defined in the JavaBean style.
+- A central feature of Hibernate, proxies, depends upon the persistent class being either non-final, or the implementation of an interface that declares all public methods.
+- All classes that do not extend or implement some specialized classes and interfaces required by the EJB framework.
+
+Example:
+
+public class Employee {
+   private int id;
+   private String firstName; 
+   private int salary;  
+
+   public Employee() {}
+   public Employee(String fname, int salary) {
+      this.firstName = fname;
+      this.salary = salary;
+   }
+   
+   // getters and setters for the above fields
+}
+
+
+
+Hibernate Mapping Files:
+========================
+An Object/relational mappings are usually defined in an XML document. This mapping file instructs Hibernate — how to map the defined class or classes to the database tables
+
+Example (for above class):
+--------------------------
+<hibernate-mapping> //contains all the <class> elements
+   <class name = "Employee" table = "EMPLOYEE">
+      <meta attribute = "class-description">
+         This class contains the employee detail. 
+      </meta>
+      <id name = "id" type = "int" column = "id">
+         <generator class="native"/>
+      </id>
+      <property name = "firstName" column = "first_name" type = "string"/>
+      <property name = "lastName" column = "last_name" type = "string"/>
+      <property name = "salary" column = "salary" type = "int"/>
+   </class>
+</hibernate-mapping>
+
+
+Hibernate Mapping Types:
+========================
+- When you prepare a Hibernate mapping document, you find that you map the Java data types into RDBMS data types. 
+- The types declared and used in the mapping files are not Java data types; they are not SQL database types either.
+- These types are called Hibernate mapping types, which can translate from Java to SQL data types and vice versa.
+
+
+
+
+Hibernate - Basic Example:
+==========================
+
+Create Application Class:
+-------------------------
+public class ManageEmployee {
+   private static SessionFactory factory; 
+   public static void main(String[] args) {
+      try {
+         factory = new Configuration().configure().buildSessionFactory();
+      } catch (Throwable ex) { 
+      }
+      
+      ManageEmployee ME = new ManageEmployee();
+
+      //  Add few employee records in database
+      Integer empID1 = ME.addEmployee("Zara", "Ali", 1000);
+      Integer empID2 = ME.addEmployee("Daisy", "Das", 5000);
+
+      ME.listEmployees();  // List down all the employees
+
+      ME.updateEmployee(empID1, 5000);  // Update employee's records
+
+      ME.deleteEmployee(empID2);  // Delete an employee from the database
+
+      ME.listEmployees();  // List down new list of the employees
+   }
+   
+   /* Method to CREATE an employee in the database */
+   public Integer addEmployee(String fname, String lname, int salary){
+      Session session = factory.openSession();
+      Transaction tx = null;
+      Integer employeeID = null;
+      try {
+         tx = session.beginTransaction();
+         Employee employee = new Employee(fname, lname, salary);
+         employeeID = (Integer) session.save(employee); 
+         tx.commit();
+      } catch (HibernateException e) {
+      }
+      return employeeID;
+   }
+   
+   /* Method to  READ all the employees */
+   public void listEmployees( ){
+      try {
+         List employees = session.createQuery("FROM Employee").list(); 
+         for (Iterator iterator = employees.iterator(); iterator.hasNext();){
+            Employee employee = (Employee) iterator.next(); 
+            System.out.print("First Name: " + employee.getFirstName()); 
+            System.out.print("  Last Name: " + employee.getLastName()); 
+            System.out.println("  Salary: " + employee.getSalary()); 
+         }
+         tx.commit();
+      } catch (HibernateException e) {
+      }
+   }
+   
+   /* Method to UPDATE salary for an employee */
+   public void updateEmployee(Integer EmployeeID, int salary ){
+      try {
+         Employee employee = (Employee)session.get(Employee.class, EmployeeID); 
+         employee.setSalary( salary );
+		 session.update(employee); 
+         tx.commit();
+      } catch (HibernateException e) {
+      }
+   }
+   
+   /* Method to DELETE an employee from the records */
+   public void deleteEmployee(Integer EmployeeID){
+      try {
+         Employee employee = (Employee)session.get(Employee.class, EmployeeID); 
+         session.delete(employee); 
+         tx.commit();
+      } catch (HibernateException e) {
+      }
+   }
+}
+
+
+
+
+Hibernate - O/R Mappings:
+=========================
+Collections Mappings
+
+java.util.Set:
+--------------
+This is mapped with a <set> element and initialized with java.util.HashSet
+
+EMPLOYEE table, which would have the following structure −
+
+create table EMPLOYEE (
+   id INT NOT NULL auto_increment,
+   first_name VARCHAR(20) default NULL,
+   last_name  VARCHAR(20) default NULL,
+   salary     INT  default NULL,
+   PRIMARY KEY (id)
+);
+Each employee can have one or more certificate associated.
+
+create table CERTIFICATE (
+   id INT NOT NULL auto_increment,
+   certificate_name VARCHAR(30) default NULL,
+   employee_id INT default NULL,
+   PRIMARY KEY (id)
+);
+
+public class Employee {
+   private Set certificates;
+
+   public Employee() {}
+   
+   public Employee(String fname, String lname, int salary) {
+      this.firstName = fname;
+      this.lastName = lname;
+      this.salary = salary;
+   }
+   
+   public Set getCertificates() {
+      return certificates;
+   }
+   
+   public void setCertificates( Set certificates ) {
+      this.certificates = certificates;
+   }
+}
+
+Now let us define another POJO class corresponding to CERTIFICATE table so that certificate objects can be stored and retrieved into the CERTIFICATE table. This class should also implement both the equals() and hashCode() methods so that Java can determine whether any two elements/objects are identical.
+
+public class Certificate {
+   private int id;
+   private String name; 
+
+   public Certificate() {}
+   
+   public Certificate(String name) {
+      this.name = name;
+   }
+   
+   // getters and setters
+   
+   public boolean equals(Object obj) {
+      if (obj == null) return false;
+      if (!this.getClass().equals(obj.getClass())) return false;
+
+      Certificate obj2 = (Certificate)obj;
+      if((this.id == obj2.getId()) && (this.name.equals(obj2.getName()))) {
+         return true;
+      }
+      return false;
+   }
+   
+   public int hashCode() {
+      int tmp = 0;
+      tmp = ( id + name ).hashCode();
+      return tmp;
+   }
+}
+
+<class name = "Employee" table = "EMPLOYEE">
+	<set name = "certificates" cascade="all">
+         <key column = "employee_id"/>
+         <one-to-many class="Certificate"/>
+    </set>
+</class>
+<class name = "Certificate" table = "CERTIFICATE">
+
+- The <set> element is used to set the relationship between Certificate and Employee classes. 
+- The cascade attribute in the <set> element is used to tell Hibernate to persist the Certificate objects at the same time as the Employee objects. 
+- The name attribute is set to the defined Set variable in the parent class, in our case it is certificates. 
+- For each set variable, we need to define a separate set element in the mapping file.
+
+- The <key> element is the column in the CERTIFICATE table that holds the foreign key to the parent object i.e. table EMPLOYEE.
+
+- The <one-to-many> element indicates that one Employee object relates to many Certificate objects and, as such, the Certificate object must have an Employee parent associated with it. 
+- You can use either <one-to-one>, <many-to-one> or <many-to-many> elements based on your requirement.
+
+HashSet set1 = new HashSet();
+set1.add(new Certificate("MCA"));
+set1.add(new Certificate("MBA"));
+set1.add(new Certificate("PMP"));
+
+/* Add employee records in the database */
+Integer empID1 = ME.addEmployee("Manoj", "Kumar", 4000, set1);
+
+
+
+
+java.util.SortedSet:
+--------------------
+This is mapped with a <set> element and initialized with java.util.TreeSet. The sort attribute can be set to either a comparator or natural ordering.
+
+public class Employee {
+   private int salary;
+   private SortedSet certificates;
+
+   public Employee() {}
+   
+   public Employee(String fname, String lname, int salary) {
+      this.firstName = fname;
+      this.lastName = lname;
+      this.salary = salary;
+   }
+   
+   public SortedSet getCertificates() {
+      return certificates;
+   }
+   
+   public void setCertificates( SortedSet certificates ) {
+      this.certificates = certificates;
+   }
+}
+
+
+public class Certificate implements Comparable <Certificate>{
+   
+   public int compareTo(Certificate that) {
+      final int BEFORE = -1;
+      final int AFTER = 1;
+
+      if (that == null) {
+         return BEFORE;
+      }
+
+      Comparable thisCertificate = this.getName();
+      Comparable thatCertificate = that.getName();
+
+      if(thisCertificate == null) {
+         return AFTER;
+      } else if(thatCertificate == null) {
+         return BEFORE;
+      } else {
+         return thisCertificate.compareTo(thatCertificate);
+      }
+   }
+}
+
+public class MyClass implements Comparator<Certificate>{
+   public int compare(Certificate o1, Certificate o2) {
+      final int BEFORE = -1;
+      final int AFTER = 1;
+
+      /* To reverse the sorting order, multiple by -1 */
+      if (o2 == null) {
+         return BEFORE * -1;
+      }
+
+      Comparable thisCertificate = o1.getName();
+      Comparable thatCertificate = o2.getName();
+
+      if(thisCertificate == null) {
+         return AFTER * 1;
+      } else if(thatCertificate == null) {
+         return BEFORE * -1;
+      } else {
+         return thisCertificate.compareTo(thatCertificate) * -1;
+      }
+   }
+}
+
+<class name = "Employee" table = "EMPLOYEE">
+	<set name = "certificates" cascade="all" sort="MyClass">
+		<key column = "employee_id"/>
+		<one-to-many class="Certificate"/>
+	</set>
+</class>
+<class name = "Certificate" table = "CERTIFICATE">
+
+- The <set> element is used to set the relationship between Certificate and Employee classes. 
+- We used the cascade attribute in the <set> element to tell Hibernate to persist the Certificate objects at the same time as the Employee objects. 
+- The name attribute is set to the defined SortedSet variable in the parent class, in our case it is certificates. 
+- The sort attribute can be set to natural to have natural sorting or it can be set to a custom class implementing java.util.Comparator. 
+- We have used a class MyClass which implements java.util.Comparator to reverse the sorting order implemented in Certificate class.
+
+- The <key> element is the column in the CERTIFICATE table that holds the foreign key to the parent object i.e. table EMPLOYEE.
+
+- The <one-to-many> element indicates that one Employee object relates to many Certificate objects and, as such, the Certificate object must have an Employee parent associated with it. 
+- You can use either <one-to-one>, <many-to-one> or <many-to-many> elements based on your requirement.
+
+
+
+
+
+java.util.List:
+---------------
+- This is mapped with a <list> element and initialized with java.util.ArrayList. 
+- A List collection mapping needs an index column in the collection table. 
+- The index column defines the position of the element in the collection.
+
+<list name = "certificates" cascade="all">
+	<key column = "employee_id"/>
+	<list-index column = "idx"/>
+	<one-to-many class="Certificate"/>
+</list>
+
+ArrayList set1 = new ArrayList();
+set1.add(new Certificate("MCA"));
+set1.add(new Certificate("MBA"));
+set1.add(new Certificate("PMP"));
+
+/* Add employee records in the database */
+Integer empID1 = ME.addEmployee("Manoj", "Kumar", 4000, set1);
+
+
+
+
+java.util.Collection:
+---------------------
+
+This is mapped with a <bag> or <ibag> element and initialized with java.util.ArrayList
+
+public class Employee {
+   private Collection certificates;
+}
+
+<bag name = "certificates" cascade="all">
+	<key column = "employee_id"/>
+	<one-to-many class="Certificate"/>
+</bag>
+
+- The <bag> element is used to set the relationship between Certificate and Employee classes. 
+- We used the cascade attribute in the <bag> element to tell Hibernate to persist the Certificate objects at the same time as the Employee objects.
+- The name attribute is set to the defined Collection variable in the parent class, in our case it is certificates.
+
+- The <key> element is the column in the CERTIFICATE table that holds the foreign key to the parent object i.e. table EMPLOYEE.
+
+- The <one-to-many> element indicates that one Employee object relates to many Certificate objects and, as such, the Certificate object must have an Employee parent associated with it. 
+- You can use either <one-to-one>, <many-to-one> or <many-to-many> elements based on your requirement.
+
+
+
+
+java.util.Map:
+--------------
+
+This is mapped with a <map> element and initialized with java.util.HashMap
+
+public class Employee {
+   private Map certificates;
+}
+
+<map name = "certificates" cascade="all">
+	<key column = "employee_id"/>
+	<index column = "certificate_type" type = "string"/>
+	<one-to-many class="Certificate"/>
+</map>
+
+The <map> element is used to set the relationship between Certificate and Employee classes. We used the cascade attribute in the <map> element to tell Hibernate to persist the Certificate objects at the same time as the Employee objects. The name attribute is set to the defined Map variable in the parent class, in our case it is certificates.
+
+The <index> element is used to represents the key parts of the key/value map pair. The key will be stored in the column certificate_type using a type of string.
+
+The <key> element is the column in the CERTIFICATE table that holds the foreign key to the parent object ie. table EMPLOYEE.
+
+The <one-to-many> element indicates that one Employee object relates to many Certificate objects and, as such, the Certificate object must have a Employee parent associated with it. You can use either <one-to-one>, <many-to-one> or <many-to-many> elements based on your requirement.
+
+
+java.util.SortedMap:
+--------------------
+
+This is mapped with a <map> element and initialized with java.util.TreeMap. The sort attribute can be set to either a comparator or natural ordering.
+
+public class Employee {
+   private SortedMap certificates;
+}
+
+public class Certificate implements Comparable <String>{
+   public int compareTo(String that){
+      final int BEFORE = -1;
+      final int AFTER = 1;
+
+      if (that == null) {
+         return BEFORE;
+      }
+
+      Comparable thisCertificate = this;
+      Comparable thatCertificate = that;
+
+      if(thisCertificate == null) {
+         return AFTER;
+      } else if(thatCertificate == null) {
+         return BEFORE;
+      } else {
+         return thisCertificate.compareTo(thatCertificate);
+      }
+   }
+}
+
+<map name = "certificates" cascade="all" sort="MyClass">
+	<key column = "employee_id"/>
+	<index column = "certificate_type" type = "string"/>
+	<one-to-many class="Certificate"/>
+</map>
+
+
+
+
+Association Mappings:
+=====================
+
+Many-to-One	: Many employee can have same address (Eg: PG).
+One-to-One	: Each employee can have dedicated address/room (Eg: Private room/house).
+One-to-Many	: Each employee can have one or more certificate associated.
+Many-to-Many: Each employee can have one or more certificate associated and a similar certificate can be associated with more than one employee.
+
+
+
+Many-to-One:
+------------
+many employee can have same address. Eg: PG (Paying Guest). So this association can be represented using many-to-one association.
+
+public class Employee{
+   private int id;
+   private String firstName; 
+   private Address address;
+}
+
+<class name = "Employee" table = "EMPLOYEE">
+	<property name = "firstName" column = "first_name" type = "string"/>
+	<property name = "lastName" column = "last_name" type = "string"/>
+	<property name = "salary" column = "salary" type = "int"/>
+	<many-to-one name = "address" column = "address" 
+	class="Address" not-null="true"/>
+</class>
+
+The <many-to-one> element is used to set the relationship between EMPLOYEE and ADDRESS entities. The name attribute is set to the defined variable in the parent class, in our case it is address. 
+The column attribute is used to set the column name in the parent table EMPLOYEE.
+
+
+One-to-One:
+-----------
+<many-to-one name = "address" column = "address" unique="true" class="Address" not-null="true"/>
+
+The column attribute is used to set the column name in the parent table EMPLOYEE, which is set to unique so that only one Employee object can be associated with an address object. Eg: Private room/house.
+
+
+
+One-to-Many:
+------------
+Each employee can have one or more certificate associated with him/her.
+
+<class name = "Employee" table = "EMPLOYEE">
+	<set name = "certificates" cascade="all">
+	<key column = "employee_id"/>
+	<one-to-many class="Certificate"/>
+	</set>
+</class>
+
+
+Many-to-Many:
+-------------
+Each employee can have one or more certificate associated with him/her and a similar certificate can be associated with more than one employee.
+
+<class name = "Employee" table = "EMPLOYEE">
+	<set name = "certificates" cascade="all">
+	<key column = "employee_id"/>
+	<many-to-many class="Certificate"/>
+	</set>
+</class>
+
+
+
+Component Mappings:
+===================
+According to the relationship each student should have a unique address. Since the Student and Address entities are strongly related (composition relation), it is better to store them in a single table. The relational model is shown below. 
+This is mainly used if the dependent object doen't have primary key.
+
+<class name="com.vaannila.student.Student" table="STUDENT">
+	<meta attribute="class-description">This class contains student details.</meta>
+	<id name="studentId" type="long" column="STUDENT_ID">
+		<generator class="native" />
+	</id>
+	<property name="studentName" type="string" not-null="true"
+		column="STUDENT_NAME" />
+	<component name="studentAddress" class="com.vaannila.student.Address">
+		<property name="street" column="ADDRESS_STREET" type="string"
+			length="250" />
+		<property name="city" column="ADDRESS_CITY" type="string"
+			length="50" />
+		<property name="state" column="ADDRESS_STATE" type="string"
+			length="50" />
+		<property name="zipcode" column="ADDRESS_ZIPCODE" type="string"
+			length="10" />
+	</component>
+</class>
+
+public class Student implements java.io.Serializable {
+	private long studentId;
+	private String studentName;
+	private Address studentAddress;
+}
+
+Address address = new Address("OMR Road", "Chennai", "TN", "600097");
+Student student = new Student("Eswar", address);
+session.save(student);
+
+
+
+Hibernate - Query Language:
+===========================
+Hibernate Query Language (HQL) is an object-oriented query language, similar to SQL, but instead of operating on tables and columns, HQL works with persistent objects and their properties.
+
+FROM Clause:
+------------
+String hql = "FROM Employee";
+String hql = "FROM com.hibernatebook.criteria.Employee";  // If you need to fully qualify a class name in HQL
+Query query = session.createQuery(hql);
+List results = query.list();
+
+AS Clause:
+----------
+String hql = "FROM Employee AS E"; // or simply "FROM Employee E" - keyword AS is optional
+
+SELECT Clause:
+--------------
+String hql = "SELECT E.firstName FROM Employee E";
+
+WHERE Clause:
+-------------
+String hql = "FROM Employee E WHERE E.id = 10";
+
+ORDER BY Clause:
+----------------
+String hql = "FROM Employee E WHERE E.id > 10 ORDER BY E.firstName DESC, E.salary DESC ";
+
+GROUP BY Clause:
+----------------
+String hql = "SELECT SUM(E.salary), E.firtName FROM Employee E GROUP BY E.firstName";
+
+Using Named Parameters:
+-----------------------
+String hql = "FROM Employee E WHERE E.id = :employee_id";
+Query query = session.createQuery(hql);
+query.setParameter("employee_id",10);
+List results = query.list();
+
+UPDATE Clause:
+--------------
+String hql = "UPDATE Employee set salary = :salary WHERE id = :employee_id";
+Query query = session.createQuery(hql);
+query.setParameter("salary", 1000);
+query.setParameter("employee_id", 10);
+int result = query.executeUpdate();
+
+DELETE Clause:
+--------------
+String hql = "DELETE FROM Employee WHERE id = :employee_id";
+Query query = session.createQuery(hql);
+query.setParameter("employee_id", 10);
+int result = query.executeUpdate();
+
+INSERT Clause:
+--------------
+String hql = "INSERT INTO Employee(firstName, lastName, salary) SELECT firstName, lastName, salary FROM old_employee";
+Query query = session.createQuery(hql);
+int result = query.executeUpdate();
+
+Pagination using Query:
+-----------------------
+String hql = "FROM Employee";
+Query query = session.createQuery(hql);
+query.setFirstResult(1);
+query.setMaxResults(10);
+List results = query.list();
+
+
+
+Hibernate - Criteria Queries:
+=============================
+- Hibernate provides alternate ways of manipulating objects and in turn data available in RDBMS tables. 
+- One of the methods is Criteria API, which allows you to build up a criteria query object programmatically where you can apply filtration rules and logical conditions.
+
+- The Hibernate Session interface provides createCriteria() method, which can be used to create a Criteria object that returns instances of the persistence object's class when your application executes a criteria query.
+
+Criteria cr = session.createCriteria(Employee.class);
+List results = cr.list();
+
+Restrictions with Criteria:
+---------------------------
+Criteria cr = session.createCriteria(Employee.class);
+cr.add(Restrictions.eq("salary", 2000)); // To get records having salary equal to 2000
+cr.add(Restrictions.gt("salary", 2000)); // To get records having salary more than 2000
+cr.add(Restrictions.lt("salary", 2000)); // To get records having salary less than 2000
+cr.add(Restrictions.like("firstName", "zara%")); // To get records having fistName starting with zara
+cr.add(Restrictions.ilike("firstName", "zara%")); // Case sensitive form of the above restriction.
+cr.add(Restrictions.between("salary", 1000, 2000)); // To get records having salary in between 1000 and 2000
+cr.add(Restrictions.isNull("salary")); // To check if the given property is null
+cr.add(Restrictions.isNotNull("salary")); // To check if the given property is not null
+cr.add(Restrictions.isEmpty("salary")); // To check if the given property is empty
+cr.add(Restrictions.isNotEmpty("salary")); // To check if the given property is not empty
+List results = cr.list();
+
+
+You can create AND or OR conditions using LogicalExpression restrictions as follows −
+
+Criteria cr = session.createCriteria(Employee.class);
+Criterion salaryCrit = Restrictions.gt("salary", 2000);
+Criterion nameCrit = Restrictions.ilike("firstNname","zara%");
+LogicalExpression orExp = Restrictions.or(salaryCrit, nameCrit); // To get records matching with OR conditions
+cr.add( orExp );
+LogicalExpression andExp = Restrictions.and(salaryCrit, nameCrit); // To get records matching with AND conditions
+cr.add( andExp );
+List results = cr.list();
+
+
+Sorting the Results:
+--------------------
+Criteria crit = session.createCriteria(Employee.class);
+crit.add(Restrictions.gt("salary", 2000)); // To get records having salary more than 2000
+crit.addOrder(Order.desc("salary")); // To sort records in descening order
+crit.addOrder(Order.asc("salary")); // To sort records in ascending order
+List results = crit.list();
+
+
+Projections and Aggregations:
+-----------------------------
+Criteria cr = session.createCriteria(Employee.class);
+cr.setProjection(Projections.rowCount()); // To get total row count.
+cr.setProjection(Projections.avg("salary")); // To get average of a property.
+cr.setProjection(Projections.countDistinct("firstName")); // To get distinct count of a property.
+cr.setProjection(Projections.max("salary")); // To get maximum of a property.
+cr.setProjection(Projections.min("salary")); // To get minimum of a property.
+cr.setProjection(Projections.sum("salary")); // To get sum of a property.
+
+
+
+@Embeddable and @Embedded Annotation:
+=====================================
+- These annotations are used to map an object’s properties to columns in a database table.
+- These annotations are used in combination to allow the properties of one class to be included as a value type in another class and then be persisted in the database as part of the containing class.
+- By using these annotations, Hibernate can automatically persist the properties of the embeddable class within the containing class to the database table, without the need to create a separate table for the embeddable class.
+
+Example:
+--------
+
+@Embeddable
+public class Address { 
+  private String street; 
+  private String city; 
+  private String state; 
+  private String zip; 
+  // getters and setters 
+}
+
+@Entity
+public class Employee { 
+  @Id
+  private int id; 
+  private String name; 
+  @Embedded
+  private Address address; 
+  // getters and setters 
+}
+
+- In this example, the Address class is marked as @Embeddable, which means it can be included as a value type in another class. The Employee class has an Address field which is marked with the @Embedded annotation. This tells Hibernate that the Address object is an embeddable object and its properties should be mapped to columns in the same table as the Employee class.
+
+- When the Employee object is saved to the database, the properties of the embedded Address object will also be saved to the same table, with the column names being prefixed with the name of the field in the Employee class (in this case, “address_”).
+
+
+Note: You can also use the @AttributeOverrides to customize the column name mapping.
+
+@Embedded
+@AttributeOverrides({
+  @AttributeOverride(name = "street", column = @column(name = "home_street")) 
+}) 
+private Address address;
+
+
+
+get() and load() Method:
+========================
+
+get() method:
+-------------
+- Used to retrieve a persistent object from the database.
+- Member of the Session interface which takes the class name and the primary key of the object as arguments.
+- Hits the database if the object is not present in the session cache. If the same object is already present in the cache then it returns previously stored data from the cache.
+- get() method returns null if there is no object present in the database.
+
+load() method:
+--------------
+- Used to retrieve an object from the database by its identifier (primary key). 
+- It is used to initialize a proxy object instead of a fully-initialized object, so it can be used to lazily load the object when it is needed.
+- load() method does not retrieve the object from the database when it is called. Instead, it returns a proxy object that represents the object. 
+- The actual object is only retrieved from the database when it is needed, such as when a method of the object is called or a property is accessed. This technique is known as “lazy loading” and it is used to improve the performance of Hibernate by avoiding unnecessary database queries.
+- load() method throws ObjectNotFoundException if there is no object found in the database.
+
+
+Eager/Lazy Loading:
+===================
+
+- FetchType specifies whether the field or property should be lazily loaded or eagerly loaded. 
+- It is used in the javax.persistence.FetchType enum.
+- There are two FetchType options available: LAZY and EAGER.
+- We can specify the fetch type of an association by using the fetch attribute of the 
+    @OneToMany, @ManyToOne, @OneToOne, or @ManyToMany annotations.
+
+LAZY:
+-----
+- This is the default FetchType in Hibernate. 
+- It means that the associated entity will be fetched only when it is accessed explicitly. 
+- This can improve performance in cases where the associated entity is not required most of the time.
+- This can be more efficient than eagerly fetching the entity, especially if the entity has a lot of data and is not needed for every use of the parent entity.
+- It’s important to note that using FetchType.LAZY can result in additional database queries being issued when the associated entity is accessed, so it may not always be the most efficient option. 
+- It’s a good idea to profile your application to determine the best fetch strategy for your use case.
+
+Example:
+--------
+@Entity
+public class Employee {
+  @OneToOne(fetch = FetchType.LAZY) 
+  @JoinColumn(name = "address_id") 
+  private Address address; 
+  // other fields and methods 
+}
+
+
+EAGER:
+------
+- This FetchType means that the associated entity will be fetched together with the main entity when the main entity is fetched from the database. 
+- This can be useful in cases where the associated entity is always required, but can also result in a performance decrease if the associated entity is large and/or has many associations itself.
+- Using FetchType.EAGER can be more efficient than using FetchType.LAZY if the associated entity is needed for most uses of the parent entity, as it avoids the need for additional database queries to fetch the associated entity when it is accessed.
+- However, it can also be less efficient if the associated entity has a lot of data and is not needed for every use of the parent entity
+- It’s a good idea to profile your application to determine the best fetch strategy for your use case.
+
+
+
+Hibernate - Caching:
+====================
+Caching is a mechanism to enhance the performance of a system. It is a buffer memory that lies between the application and the database. Cache memory stores recently used data items in order to reduce the number of database hits as much as possible.
+
+First-level Cache:
+------------------
+First-level caching is an in-built caching mechanism provided by Hibernate.
+The first-level cache has session-level scope. So, the data stored in the cache is available only within the session.
+When the session is closed, the cache is cleared automatically. 
+The cache is also not shared between different sessions, which means that each session has its own separate cache.
+Hibernate manages the first-level cache automatically, and there is no need to configure it manually. 
+The cache is enabled by default and can’t be turned off.
+
+Second-level Cache:
+-------------------
+- Second-level caching is an optional caching mechanism that stores data across sessions.
+- The first-level cache will always be consulted before any attempt is made to locate an object in the second-level cache.
+- The second level cache can be configured on a per-class and per-collection basis.
+
+- To enable Second-level Caching in Hibernate, you need to configure a cache provider in your Hibernate config file.
+- Hibernate supports multiple cache providers such as Ehcache, Infinispan, and Hazelcast.
+- You also need to annotate the entities that you want to cache with the @Cacheable annotation.
+
+
+Implementing EHCache:
+---------------------
+1. Add the Ehcache dependency to your pom.xml file:
+  <dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-ehcache</artifactId>
+    <version>${hibernate.version}</version>
+  </dependency>
+
+
+2. Configure Ehcache in your application.properties file or hibernate.cfg.xml file:
+
+spring.jpa.properties.hibernate.cache.region.factory_class=org.hibernate.cache.ehcache.EhCacheRegionFactory
+spring.jpa.properties.hibernate.cache.use_second_level_cache=true
+
+
+<hibernate-configuration>
+  <session-factory>
+    <property name="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</property>
+    <property name="hibernate.cache.use_second_level_cache">true</property>
+    <property name="hibernate.cache.use_query_cache">true</property>
+    <property name="net.sf.ehcache.configurationResourceName">/myehcache.xml</property>
+  </session-factory>
+</hibernate-configuration>
+
+
+3. Annotate Entities:
+
+- To enable caching for an entity, annotate it with the @Cacheable annotation.
+- You can also specify the cache concurrency strategy using the @Cache annotation.
+
+@Data
+@Entity
+@Table(name = "users")
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+public class User {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  private String username;
+  private String email;
+}
+
+
+Concurrency Strategies:
+-----------------------
+Transactional:
+  - Use this strategy for read-mostly data where it is critical to prevent stale data in concurrent transactions, in the rare case of an update.
+Read-write:
+  − Again use this strategy for read-mostly data where it is critical to prevent stale data in concurrent transactions, in the rare case of an update.
+Nonstrict-read-write:
+  − This strategy makes no guarantee of consistency between the cache and the database. Use this strategy if data hardly ever changes and a small likelihood of stale data is not of critical concern.
+Read-only:
+  − A concurrency strategy suitable for data, which never changes. Use it for reference data only.
+
+
+The Query-level Cache:
+======================
+- Query caching is a caching mechanism used to cache the results of queries.
+- When a query is executed, Hibernate checks if the query results are already cached.
+- If the results are found in the cache, they are returned without hitting the database, otherwise, the query is executed and the results are cached for future use.
+
+
+To enable query caching in Hibernate, make following changes in the configuration file. 
+
+spring.jpa.properties.hibernate.cache.use_query_cache=true
+spring.jpa.properties.hibernate.cache.region.factory_class=org.hibernate.cache.ehcache.EhCacheRegionFactory
+
+
+@Repository
+public interface AuthorRepository extends CrudRepository<Author, Integer> {
+  @QueryHints({ @QueryHint(name = "org.hibernate.cacheable", value ="true") })
+  Author findByName(String name);
+}
+
+
+Session session = SessionFactory.openSession();
+Query query = session.createQuery("FROM EMPLOYEE");
+query.setCacheable(true);
+List users = query.list();
+SessionFactory.closeSession();
+
+
+Configuring Caching:
+--------------------
+Hibernate provides various configuration properties to enable and configure caching. Here are some of the commonly used properties:
+
+- hibernate.cache.use_second_level_cache - Set this to true to enable the second-level cache.
+- hibernate.cache.region.factory_class - This property specifies the caching provider to be used for the second-level and query cache. For example, to use EHCache, set it to org.hibernate.cache.ehcache.EhCacheRegionFactory.
+- hibernate.cache.use_query_cache - Set this to true to enable the query cache.
+- hibernate.cache.provider_configuration_file_resource_path - This property specifies the path to the configuration file for the caching provider. For example, for EHCache, it can be set to ehcache.xml.
+
+

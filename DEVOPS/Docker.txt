@@ -1,0 +1,405 @@
+DOCKER TUTORIAL
+===============
+
+INTRODUCTION:
+=============
+Docker is the world’s leading SOFTWARE CONTAINER PLATFORM.
+Makes the process of application deployment very easy and efficient.
+Resolves a lot of issues related to deploying applications.
+A tool designed to make it easier to deploy and run applications by using containers.
+Gives you a standard way of packaging your application with all its dependencies in a container.
+Containers allow a developer to package up an application with all of the parts it needs, such as libraries and other dependencies, and ship it all out as one package.
+
+
+Virtualization:
+---------------
+In the Host OS, Hypervisor is avaialble which is used to create and run multiple Virtual Machines.
+Each Virtual Machines will have their own OS.
+Also, each VMs has to be allocated with a fixed disk space.
+
+Containerization:
+-----------------
+When compared with Virtialization, here we do not have dedicated/seperate OS for each instance of VMs.
+It uses the Host OS.
+
+
+HOW DOCKER WORKS:
+=================
+Developer defines the application and its dependencies in a file called Dockerfile.
+Dockerfile is used to create Docker Images.
+When Docker Image is run, Docker Container is obtained.
+Additionally, Docker images can be stored in a repository called Docker Hub.
+
+Docker has a client-server architecture.
+The Docker CLI is the Client.
+The Docker server/Daemon where the containers are present is the Server.
+The server receives the commands from client through CLI or REST APIs.
+Client and Server can be in the same machine or different machine.
+
+
+ADVANTAGES:
+===========
+1. Build app only once
+2. No worries that the application will not perform the same way it did on testing env
+3. Portability
+4. Version Control - Images can version controlled
+5. Isolation - Each Docker environment is seperate in the given VM
+6. Productivity
+
+
+DOCKER SETUP AND BASIC COMMANDS:
+================================
+Install docker for necessary Operating system.
+
+$ docker --version  # display the version of docker installed
+$ docker version  # display the detailed info about docker client and server installed
+$ docker login  # to login to docker account
+
+$ docker images  # to show the list of images available
+$ docker images -a  # lists all images with details like name, id etc.
+$ docker pull <image_name>  # to pull a image from docker hub or remote repository
+$ docker rmi <image_id>  # to remove one or more images
+
+$ docker ps  # list the containers
+$ docker create --name container1 <image_name> # create a new docker container named 'container1'
+$ docker start <continer_id>  # to start the stopped container
+$ docker run -it <image_name>  # to start the created container from the image specified (create + start)
+$ docker stop <continer_id>  # to stop the container
+
+$ docker stats  # details of the running container, memory usage etc.
+$ docker system df  # disk fragment details
+$ docker system prune  # remove all stopped containers, all dangling images. -a is used to remove all unused images.
+
+
+DOCKER IMAGES:
+==============
+Images are templates used to create Containers.
+Containers are running instance of Images.
+Images can be stored at local or remote location (docker hub)
+
+$ docker images  # to display the list of images available
+$ docker images -q  # to display only ID of the list of images available
+$ docker images -f "dangling=false"  # daingling images are one that are not associated with any container.
+$ docker pull <image_name>  # to pull a image from docker hub or remote repository
+$ docker pull <image_name>:<version>  # to pull a specific version of image
+$ docker rmi <image_name>   # to remove the image
+$ docker rmi -f <image_name>  # to remove the image forcefully
+$ docker inspect  # to inspect an image. contains a wide range of details.
+
+
+DOCKER CONTAINERS:
+==================
+Containers are running instance of Images.
+
+$ docker create --name container1 <image_name> # create a new docker container named container1
+$ docker run <image_name>  # to pull the image from remote (if not available locally) and then create and run the container from the image.
+$ docker start <container_id>/<container_name>  # to start the container
+$ docker stop <container_id>/<container_name>  # to stop the container
+$ docker pause <container_id>/<container_name>  # to pause the container
+$ docker unpause <container_id>/<container_name>  # to unpause the container
+$ docker top <container_id>/<container_name>  # to display the top running processes of container
+$ docker stats <container_id>/<container_name>  # to display the stats of the container
+$ docker kill <container_id>/<container_name>  # to kill a running container
+$ docker remove <container_id>/<container_name>  # to remove a running container
+$ docker history <container_id>/<container_name>  # to display the history of a container
+$ docker logs <container_id>/<container_name>  # to display the log of a container
+$ docker logs -f <container_id>/<container_name>  # to display the log of a container in follow/attached mode
+
+
+docker run vs docker start:
+---------------------------
+'docker run' pulls an image from repository (if not already available) and starts the container. 'docker start' will start a stopped container.
+Though 'docker run' will also start a stopped container, if there is no change to the code or dockerfile, it is recommended to use docker start to just start a container from a unmodified code.
+'docker run' will run container in attached mode, whereas 'docker start' will start container in detached mode. This is their default behaviour. However, 'docker run -d' will run in detached mode. It can be attached later using command 'docker attach CONTAINER_NAME'.
+
+JENKINS ON DOCKER CONTAINER:
+============================
+$ docker pull jenkins  # to pull jenkins image from docker hub
+$ docker run -p 8080:8080 -p 50000:50000 jenkins  # to start jenkins container in docker. port 8080, 50000 are for jenkins server and api respectively.
+$ docker run --name MyJenkins1 -p 8080:8080 -p 50000:50000 -v /users/Barath/Desktop/Jenkins_Home:/var/jenkins/home jenkins  # to start jenkins container by adding a specific volume, so that the data does not get lost after the container is stopped or killed.
+
+
+DOCKERFILE:
+===========
+Dockerfile is the simple text file with instructions to create a docker image.
+
+Example 1:
+----------
+`
+FROM ubuntu  # getting base image from which we are going to create our image
+MAINTAINER Barath Kumar <barath@mailid.com>
+RUN apt-get update  # RUN command gets executed while the image is built
+CMD ["echo", "Hello world. This is my first docker file"]  # CMD command gets executed when a container is created out of image.
+`
+
+$ docker build <location/docker_file_name>  # to create an image from docker file.
+$ docker build -t MyImage <location/docker_file_name>  # to create an image with name specified.
+
+
+
+Example 2:
+----------
+FROM node  // to build your own image on top of another image
+
+WORKDIR /app
+
+COPY package.json .
+
+RUN npm install  // RUN command is executed when image is built. Run the command npm install so that all dependencies are downloaded as part of docker image
+
+COPY . /app  // copy the files from your local system to path in the filesystem inside the container
+
+EXPOSE 3000  // to mention that port 3000 of container will be exposed to the outside world to access this node application. However this does not actually expose it. Use 'docker run -p' command.
+
+CMD ["node","app.mjs"]  // CMD command will be run when the container is started
+
+
+$docker build .  // to create a image file out of Dockerfile
+
+
+Images are readonly:
+After the Docker image is built, if any change is made in the application code, the image does not get updated automatically. We need to create the image file again and run the container.
+
+Images are layer based:
+When an image is rebuilt, only the instructions/commands that got changed is executed. Each instruction is a layer in docker image.
+
+
+
+
+Attached and Detached containers:
+=================================
+$ docker run -p 3000:3000 <IMAGE_ID>  // starts the container in attached mode
+$ docker run -p 3000:3000 -d <IMAGE_ID>  // starts the container in detached mode
+$ docker attach <CONTAINER_ID>  // to attach a running container that was started in detached mode
+$ docker logs <CONTAINER_ID>  // to show the logs for a container
+$ docker logs -f <CONTAINER_ID>  // to follow the logs for a container. Similar to attached mode
+
+$ docker start -a <CONTAINER_ID>  // restarts the container in attached mode
+
+$ docker run -it <CONTAINER_ID>  // starts the container in interactive mode
+
+
+Deleting Images and Containers:
+===============================
+$ docker rm <CONTAINER_ID>  // to remove unused container. Only stopped containers can be removed
+$ docker rmi <IMAGE_ID>  // to remove unused Images. Images associated with running/stopped containers can not be removed
+
+$ docker run -rm <IMAGE_ID>  // -rm option will ensure that the container is automatically removed when it is being stopped
+
+
+Copying files between local machine and containers:
+===================================================
+You can copy files between local machine and containers. 
+Copying files does not required image rebuild or container restart.
+Use cases could be coping modified property files to container, copying log files from containers.
+
+$ docker cp src_file_or_folder dest_file_or_folder // here one argument should be local system and other one being remote container.
+  eg: docker cp temp/. my_nodeapp_container:/test  // this will copy all the files and folder inside temp directory in local system to container named my_nodeapp_container inside path /test. 
+
+
+
+
+
+DOCKER COMPOSE:
+===============
+Tool for defining & running multi-container docker applications
+We use yaml files to configure application services (docker-compose.yml)
+Can start all services with a single command : docker-compose up
+Can stop all services with a single command : docker-compose down
+Can scale up selected services when required
+
+$ docker-compose -v  # to display the version of Docker Compose installed
+
+1. Create docker compose file at any location on your system - 'docker-compose.yml'
+2. Validate the docker compose file using command
+   $ docker-compose config
+3. Run docker-compose.yml file using command. -d option is to run in detached mode.
+   $ docker-compose up -d
+4. Bring down application by command.
+   $ docker-compose down
+5. To scale any service
+   $ docker-compose up -d --scale <service_name>=<no_of_instances>
+   $ docker-compose up -d --scale database=4
+
+
+DOCKER VOLUMES:
+===============
+Volumes are the preferred mechanism for persisting data generated by and used by Docker containers
+
+Benefits of using Volumes:
+--------------------------
+- Decoupling container from storage
+- Share volume (storage/data) among different containers
+- Attach volume to container
+- On deleting container, volume does not get deleted
+
+
+ docker volume create
+: docker volume ls
+: docker volume inspect
+: docker volume rm
+: docker volume prune
+
+$ docker volume create <volume_name>  # to create a new volume
+$ docker volume ls  # to display list of volumes
+$ docker volume inspect <volume_name>  # to display details of the specified volume
+$ docker volume rm <volume_name>  # to remove volume specified
+$ docker volume prune  # to remove all unused volume
+$ docker run --name MyJenkins1 -v MyVolume1:/var/jenkins_home -p 8080:8080 -p 50000:50000 jenkins  # to attach an already created volume to a jenkins container which is about to be created.
+
+
+DOCKER SWARM:
+=============
+Docker Swarm is a tool for Container Orchestration
+A swarm is a group of machines that are running Docker and joined into a cluster 
+Orchestration - managing and controlling multiple docker containers as a single service
+Tools available - Docker Swarm, Kubernetes, Apache Mesos
+
+Let’s take an example. Suppose you have 100 containers. You need to do 
+- Health check on every container
+- Ensure all containers are up on every system
+- Scaling the containers up or down depending on the load
+- Adding updates/changes to all the containers
+
+To perform all these Docker Swarm can be used.
+
+Pre-requisites
+--------------
+1. Docker 1.13 or higher
+2. Docker Machine (pre installed for Docker for Windows and Docker for Mac)
+
+Implementation:
+---------------
+Step 1: Create Docker machines (to act as nodes for Docker Swarm)
+        Create one machine as manager and others as workers
+        $ docker-machine create --driver hyperv manager1  # For windows - create a machine/node
+		$ docker-machine create --driver virtualbox manager1  # For linux - create a machine/node
+		Note: Though the machines are named as Manager/Worker, they are not actually. They are just nodes.
+
+Step 2: Check machine created successfully
+        $ docker-machine ls  # to list the machines/nodes created
+        $ docker-machine ip manager1  # to display the ipaddress of the node specified.
+
+Step 3: Connect(SSH) to docker machine
+        $ docker-machine ssh manager1
+
+Step 4: Initialize Docker Swarm
+        $ docker swarm init --advertise-addr MANAGER_IP
+        $ docker node ls
+        (this command will work only in swarm manager and not in worker)
+
+Step 5: Join workers in the swarm
+        $ docker swarm join-token worker  # run this command to get actual command to join manager as worker
+        Run the command obtained from the worker node, to join swarm as worker
+		$ docker node ls  # run this from manager to verify worker is registered and is ready
+        Do this for all worker machines
+
+Step 6: On manager run standard docker commands
+        $ docker info  # check the swarm section - no of manager, nodes etc
+        $ docker swarm  # Now check docker swarm command options 
+
+Step 7: Run containers on Docker Swarm
+        $ docker service create --replicas 3 -p 80:80 --name serviceName nginx  # to create container with 3 replicas/instances. This will create one replica in each node.
+        $ docker service ls
+        $ docker service ps serviceName
+
+Step 8: Scale service up and down
+        $ docker service scale serviceName=2  # On manager node 
+        Inspecting Nodes (this command can run only on manager node)
+        $ docker node inspect nodename
+        $ docker node inspect self
+        $ docker node inspect worker1
+
+Step 9: Shutdown node
+        $ docker node update --availability drain worker1
+
+Step 10: Update service
+        $ docker service update --image imagename:version web
+        $ docker service update --image nginx:1.14.0 serviceName
+
+Step 11: Remove service
+        $ docker service rm serviceName
+        $ docker swarm leave : to leave the swarm
+        $ docker-machine stop machineName : to stop the machine
+        $ docker-machine rm machineName : to remove the machine
+
+
+
+
+
+Reference:
+Docker Commands - https://docs.docker.com/engine/reference/commandline/cli/
+
+
+
+
+Few Alternatives to Docker:
+===========================
+
+
+
+
+Docker Swarm vs Kubernetes:
+===========================
+Docker Swarm is lightweight and tied to the Docker API, which limits functionality compared to Kubernetes. 
+Likewise, Docker Swarm’s automation capabilities are not as robust as those offered by Kubernetes.
+
+Kubernetes offers few advantages:
+ - It has a large open source community, backed by Google.
+ - It supports every operating system.
+ - It can sustain and manage large architectures and complex workloads.
+ - It is automated and has a self-healing capacity that supports automatic scaling.
+ - It has built-in monitoring and a wide range of integrations available.
+ - It is offered by all three key cloud providers: Google, Azure, and AWS.
+
+
+Kubernetes has a few drawbacks:
+ - It has a complex installation process and a steep learning curve.
+ - It requires you to install separate CLI tools and learn each of them.
+ - The transition from Docker Swarm to Kubernetes can be complicated and difficult to manage.
+
+
+
+a. Installation, configuration, and learning curve:
+---------------------------------------------------
+=> Docker Swarm is simple to install compared to Kubernetes, and instances are usually consistent across the OS. It is easier to learn than Kubernetes, and works with the existing CLI. Configuring a cluster in Docker Swarm is easier than configuring Kubernetes.
+
+=> Compared to Docker Swarm, Kubernetes has a more complex installation and requires more manual effort. The installation instructions can differ for each OS. Developers can find it challenging to learn, the they must get up to speed using a separate CLI tool.
+
+
+b. Application deployment:
+--------------------------
+=> Docker Swarm applications are services or microservices you can deploy using YAML files or Docker Compose.
+
+=> Kubernetes provides a broader range of options, such as a combination of namespaces, pods, and deployments.
+
+
+c. Availability and scaling:
+----------------------------
+=> Docker Swarm provides high availability as you can easily duplicate the microservices within it. Although it doesn’t provide automatic scaling, Docker Swarm does have a faster deployment time.
+
+=> Kubernetes is by nature highly available, fault tolerant, and self-healing. It also provides automatic scaling and can replace faulty pods if needed.
+
+
+d. Monitoring:
+--------------
+=> Docker Swarm supports monitoring only through third-party applications without in-built monitoring mechanisms.
+
+=> In contrast, Kubernetes has built-in monitoring and supports integration with third-party monitoring tools.
+
+
+e. Security:
+------------
+=> Docker Swarm relies on transport-layer security (TLS) to carry out access control-related tasks.
+
+=> Kubernetes supports multiple security protocols such as role-based access control (RBAC), SSL/TLS, secrets management, policies, and more.
+
+
+f. Load balancing:
+------------------
+=> Docker Swarm supports automatic load balancing and uses DNS under the hood.
+
+=> Kubernetes does not have an automatic load-balancing mechanism. However, Nginx Ingress can serve as the load balancer for each service within the cluster.
+
+
+

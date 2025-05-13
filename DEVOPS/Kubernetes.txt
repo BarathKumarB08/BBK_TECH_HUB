@@ -1,0 +1,1181 @@
+===================
+KUBERNETES TUTORIAL
+===================
+
+Introduction:
+=============
+Kubernetes is a container management (orchestration) tool.
+Container Orchestration tool or engine automates deploying, scaling and managing the containerized application on a group of servers.
+Responsibilities include automation of 
+- deploying
+- scheduling
+- batch execution
+- monitoring
+- scaling
+- load balancing
+- rollbacks
+
+
+FEATURES OF K8s:
+================
+Automatic bin packing:
+----------------------
+K8s automatically packages your application and schedules the container based on the requirement and resources available.
+Automatically places containers based on their resource requirements like CPU & Memory (RAM), while not sacrificing availability.
+Saves resources.
+
+
+Pods and Nodes:
+---------------
+Kubernetes does not interact with containers directly.
+Each Node can contain one or more Pods. Each Pod can contain one or more Containers.
+Typically each Pod will have one Volume which is shared among containers within that Pod.
+Each Pod can be uniquely identified with IP address.
+Pods that have same set of functions are abstracted into sets called services.
+Each service is given a DNS name and can load balance across them.
+
+  +--NODE------------------------------------------------------------------------------------+
+  |                                                                                          |
+  |  +--ETCD (data store)----------------+                                                   |
+  |  |                                   |                                                   |
+  |  |  +-Secrets--+   +-Config Maps--+  |                                                   |
+  |	 |  |          |   |              |  |                                                   |
+  |  |  +----------+   +--------------+  |                                                   |
+  |  +-----------------------------------+                                                   |
+  |                                                                                          |
+  |                                                                                          |
+  |  +--POD 1-------------------IP--+    +--POD 2-------------------IP--+   Group of PODS    |
+  |  |                              |    |                              |   is Services      |
+  |  |   _VOL 1__                   |    |   _VOL 2__                   |                    |
+  |  |  |________|                  |    |  |________|                  |   Services         |
+  |  |                              |    |                              |   identified by    |
+  |  |  +-CNT 1--+   +-CNT 2--+     |    |  +--CNT 3--+   +--CNT 4--+   |   DNS              |
+  |	 |  |        |   |        |     |    |  |         |   |         |   |                    |
+  |  |  +--------+   +--------+     |    |  +---------+   +---------+   |                    |
+  |  +------------------------------+    +------------------------------+                    |
+  |                                                                                          |
+  +------------------------------------------------------------------------------------------+
+
+Service discovery and load balancing:
+-------------------------------------
+Kubernetes gives Pods their own IP addresses and a single DNS name for a set of Pods, and can load-balance across them
+With this system, Kubernetes has control over network and communication between pods and can load balance across them
+
+
+Storage Orchestration:
+----------------------
+Typically each Pod will have one Volume which is shared among containers within that Pod.
+Kubernetes allows to mount the storage system of your choice
+Local
+Cloud (AWS)
+Network (NFS)
+
+
+Self-healing:
+-------------
+In K8s, ReplicationController is responsible for health check and self healing.
+
+1. If a container fails - restarts container
+2. If container does not respond to user defined health check - kills container
+3. If node dies - replaces and reschedule containers on other nodes
+
+
+Automated rollouts and rollbacks:
+---------------------------------
+Rollout means deploying changes to the application or its configuration
+Rollback means reverting the changes & restore to the previous state
+Kubernetes ensures there is no downtime during this process
+
+
+Secret & configuration management:
+----------------------------------
+Secret:
+In K8s sensitive data like passwords, keys, tokens are handled using Secrets.
+It is present outside Pods and Containers (within Node).
+Secret is a Kubernetes object that seperates sensitive data from Pods and Containers.
+
+Config Maps:
+In K8s configurations are handled using Config Maps.
+It is present outside Pods and Containers (within Node).
+Config Maps is a Kubernetes object that seperates configurations from Pods and Containers.
+
+Secrets and Config Maps are stored in a key-value datastore(database) called ETCD.
+Kubernetes manages secrets and configuration details for an application separately from the container image,
+Deploy and update secrets and application configuration without rebuilding your image and without exposing secrets in your stack configuration.
+
+
+Batch execution:
+----------------
+Kubernetes supports batch execution, long-running jobs, and replaces failed containers.
+Each job creates one or more Pods. During job execution if any container or Pod fails, Job Controller will reschedule the container, Pod on another Node.
+Can run multiple Pods in parallel and can scale up if required.
+
+
+Horizontal scaling:
+-------------------
+In Kubernetes, we can scale up or down the containers 
+ - using commands
+ - from the dashboard (kubernetes ui)
+ - automatically based on CPU usage
+
+Horizontal scaling in K8s is achieved using 3 components.
+1. ReplicationController - Get the no of replicas that needs to be available all the time from manifest file and does it. Also, if a pod crashes, the RCs replaces it with a new one.
+2. Manifest file - contains config info about the no of instances etc.
+3. Horizontal Pod Autoscaler - it monitors the CPU utilization and sends info to RCs to autoscale accordingly.
+
+
+ARCHITECTURE OF KUBERNETES:
+===========================
+When you deploy Kubernetes, you get a cluster
+A Cluster is a set of machines called nodes
+A cluster should have at least one worker node and at least one master node
+
+There can be more than one master nodes in a cluster to provide a cluster with failover and high availability
+There can be multiple clusters in Kubernetes architecture
+
+There are 4 Components of Master node
+
+1. API Server:
+--------------
+- Responsible for all communications ( JSON over HTTP API)
+- It is the frontend for Kubernetes Control Plane
+- Exposes APIs to most of the operations.
+- Users, Management devices, Command Line Interfaces all talk to API server to communicate with Clusters.
+- API server is exposed to users through APIs. 
+- Users can call these APIs through command line interace (Kubectl) or user interface (K8s dashboard)
+
+2. Scheduler:
+-------------
+- It schedules pods across multiple nodes
+- Component that watches newly created Pods that have no node assigned and selects a node to run on.
+
+3. Controller Manager:
+----------------------
+- This is the component on master that runs various controllers.
+
+Various controllers include
+  i)  Kube-controller-manager: runs controllers responsible to act when nodes become unavailable to ensure pod counts are as expected to create endpoints, service accounts and API access tokens.
+    a) Node Controller: For noticing and responding when nodes go down.
+	b) Replication Controller: For maintaining the correct number of pods for every replication controller object in the system.
+	c) Endpoints Controller: Populates the endpoint object (that is joins services and pods)
+	d) Service Account and Token Controller: Create default accounts and API access tokens for new namespaces.
+
+  ii. Cloud-controller-manager: runs controllers responsible to interact with underlying infra of cloud provider when node becomes unavailable to manage storage volumes when provided by cloud service and to manage load balancing and routing.
+    a) Node Controller: For checking the cloud provider to determine if a node has been deleted in the cloud after it stops responding.
+	b) Route Controller: For setting up routes in the underlying cloud infra
+	c) Service Controller: For creating, updating and deleting cloud provider load balancers.
+	d) Volume Controller: For creating, attaching and mounting volumes and interacting with the cloud provider to orchestrate volumes.
+
+
+4. Etcd:
+--------
+- open source, distributed key-value database from CoreOS
+- Only API Server can iteract with ETCD to get information.
+- ETCD can be configured within Master node or outside it.
+
+
+There are 3 Components of Worker node
+
+1. Kubelet:
+-----------
+- It is an agent running on each node that communicates with API server in Master node. 
+- In case, if any pod has any issue, Kubelet will try to restart the pod on the same node or else on a different node.
+
+
+2. Kube-proxy:
+--------------
+- A network agent which runs on each node responsible for maintaining network configuration and rules.
+- Exposes services to the outside world
+- Core networking component in K8s
+- It watches the API server on master for addition/removal of services and endpoints.
+
+
+3. Container runtime:
+---------------------
+- This is responsible for running containers.
+- K8s does not have the capability to run container by its own and needs a Container Runtime like DOCKER to run container.
+
+
+ADDONS:
+=======
+Add-ons extend the functionality of K8s.
+Dashboard - web based UI for cluster management.
+Monitoring - collects cluster-level container metrics and saves them to a central datastore.
+Logging - collects cluster-level container logs and saves them to a central log store for analysis.
+DNS - A DNS server required to assign DNS records to K8s objects and resources.
+
+
+INSTALLLING K8s:
+================
+3 ways
+- Online K8s labs
+  - Kubernetes Playground: https://www.katacoda.com/courses/kubernetes/playground
+  - Play with K8s: https://labs.play-with-k8s.com/
+  - Play with Kubernetes Classroom: https://training.play-with-kubernetes.com/
+
+- K8s installation tools
+  - minikube
+    -- It is a open-source tool
+	-- Using minikube we can run Kubernetes locally on your system
+	-- It runs a single-node Kubernetes cluster inside a VM on your system
+	-- Minikube is a tool that helps to create a single node Kubernetes cluster running in a VM on top of your laptop
+	-- This is for learning purpose only and cannot be used in production environment
+  - kubeadm
+
+- Cloud based K8s services
+  - Google Kubernetes Engine
+  - Azure Kubernetes Services
+  - Amazon EKS
+
+
+
+
+
+
+
+
+
+
+==================
+Kubernetes by Nana
+==================
+
+What is Kubernetes:
+===================
+It is a open source container orchestration tool developed by Google.
+Helps to manage large number of containerized applications (env can be physical, virtual, cloud).
+With development world moving from Monolithic to Microservices, managing these microservice applications on our own would be very difficult and needs more effort and time.
+Features include:
+  - High availability or least downtime of application
+  - Scalability or high performance
+  - Disaster recovery - backup and restore
+  - and so on
+
+
+Components of Kubernetes:
+=========================
+POD:
+----
+  - It is an abstraction over a container.
+  - This helps user to replace container runtime (eg: Docker) with another one with minimal change.
+  - Usually contains one container (but multiple containers are allowed).
+  - Each POD is assigned a static IP address.
+
+Services:
+---------
+  - Each POD is assigned a static IP address.
+  - If a POD crashes or removed, the IP address is lost.
+  - Creating a new POD will result in new IP address.
+  - So we need to keep configuring new IP for PODS to communicate appropriately.
+  - Service provides a permanent IP address to each POD.
+  - Lifecycle of Service and POD is independent. So POD re-creation will not affect the Service and its IP address.
+  - Service also acts as Load Balancer when connected to multiple Pods in different Nodes to achieve high availability.
+
+Ingres:
+-------
+  - Though Service provide permanent IP address, it is not advisable to provide it to end users. 
+  - i.e. 'https://my-k8s-app/' is recommended over 'http://123.45.678.9:8080'.
+  - For this, Ingres provides an abstraction layer on top of Service. 
+  - So the flow would be User -> Ingres -> Service -> POD -> Containerized application
+
+Config Maps:
+------------
+  - If the application IP or host name is configured as part of aplication code, changing it require code build, docker image creation, re-deploying it to container.
+  - To avoid this Config Maps are used, as they reside outside POD, but within the Node.
+
+Secrets:
+--------
+  - Configuring DB username in Config Maps is fine. 
+  - But password or other sensitive information configured as plain text is NOT recommended.
+  - For this purpose, Secrets are used.
+
+Volumes:
+--------
+  - If a POD that contains database is restarted, the data is not persisted.
+  - Voulmes are physical storage attached to POD to persist the data.
+
+Deployment:
+-----------
+  - Ideally, each application will be deployed in multiple nodes for high availability.
+  - To create multiple PODS or replicas of the POD, we use a blueprint called Deployment.
+
+StatefulSet:
+------------
+  - As Deployment does not have state, it not used to replicate Pods that hosts database.
+  - For this StatefulSet is used.
+  - However, it is a complex process to define and mange StatefulSet. 
+  - So database is typically hosted outside Kubernetes and only stateless applications are hosted inside cluster.
+
+
+
+Kubernetes Architecture:
+========================
+
+Kubernetes cluster comprises of two main components. Master node and Worked node.
+
+Worker Node:
+------------
+  - Each node have multiple PODs.
+  - Worker node do the actual task in the cluster.
+  - Each Worker node consists of 3 processes.
+    1. Container Runtime
+    2. Kubelet
+    3. Kube-proxy
+
+Container Runtime:
+------------------
+  - This is responsible for running containers.
+  - K8s does not have the capability to run container by its own and needs a Container Runtime like DOCKER to run container.
+
+Kubelet:
+-------
+  - Kubelet interacts with both container and the node.
+  - Responsible for creating/starting/destroying the POD on the worker node. Also assigns necessary resources like memory, CPU, sotrage etc.
+  - It register the node as worker node in API server of master node. 
+  - Reports the status of POD and the worker node to the API server.
+  - In case, if any pod has any issue, Kubelet will try to restart the pod on the same node or else on a different node.
+
+Kube-Proxy:
+-----------
+  - It is responsible for forwarding the requests from Services to Pods.
+  - Is also maintains network configuration and rules.
+  - It uses intelligent forwarding using which if a request that comes to Application Pod need to communicate to database Pod, instead of forwarding it to random Pod, it forwards the request to the one in the same node. This helps reduce network overhead/latency.
+
+
+
+Master Node:
+------------
+  - Every K8s cluster will have one or more master node.
+  - It is responsible for
+    - scheduling POD on the available Node.
+	- monitor the POD to check if it is up and running.
+	- rescheduling and restarting the Pod in case of Pod failure.
+	- join a newly created Node to the cluster.
+  - Every master node consists of 4 components/services.
+    - Api Server
+	- Scheduler
+	- Controller Manager
+	- ETCD
+  - If the cluster contains multiple master nodes, each node will have it own Api server but a common distrubuted ETCD for data consistency.
+
+API Server:
+-----------
+  - When an application needs to be deployed into the cluster, client (using UI/CLI/API) interacts with API server.
+  - It is the gateway for the request from external client.
+  - It is also used to authenticate the incoming request.
+
+Scheduler:
+----------
+  - It is responsible to identify the Node on which the application can be installed.
+  - It decided the Node based on 
+    - the resources required for the application and 
+	- the Node which has most available resource.
+  - Scheduler just decides the Node in which POD needs to be scheduled. Kubelet does actual scheduling in the corresponding worker node.
+
+Controller Manager:
+-------------------
+  - It is responsible for managing the state of the cluster at any time.
+  - If some POD crashes, it notifies the Scheduler to act appropriately.
+  - Types of Controller Manager are:
+    - Node Controller: For noticing and responding when nodes go down.
+    - Replication Controller: For maintaining the correct number of pods for every replication controller object in the system.
+    - Endpoints Controller: Populates the endpoint object (that is joins services and pods)
+    - Service Account and Token Controller: Create default accounts and API access tokens for new namespaces.
+
+ETCD:
+-----
+  - It is the key value store that contains the current state of the cluser.
+  - Controller Manager makes reference of ETCD to validate any changes in cluster state and schedule POD accordingly.
+  - ETCD does not store the application data.
+
+
+
+Minikube:
+=========
+  - Setting up entire cluster in the local machine is not practically possible due to resource constraints.
+  - Minikube setup provides one node that contains both master and worker processes in the same node.
+  - It also comes with inbuilt Docker container.
+  - Minikube creates a virtual box in the local system and runs the node on top of it.
+
+Kubectl:
+========
+  - It is the command line tool for K8s cluster.
+  - Using this tool, we can perform actions on the cluster.
+  - Usually when Minikube is installed, it also installs Kubectl (Kubernetes CLI).
+
+
+Commands Actions and Commands:
+------------------------------
+  $ minikube start --vm-driver=<<VM_INSTALLED_IN_SYSTEM>>  // Eg: hyperkit  -- to start the minikube which sets up cluster.
+  $ minikube status  // display the status of processes/components inside minikube
+  $ kubectl get nodes  // to get the status of the nodes
+  $ kubectl get pods  // to get the list of pods available and its status
+  $ kubectl get services  // to get the list of services available and its status
+
+  $ kubectl create deployment <<DEPLOYMENT_NAME>> --image=<<IMAGE_NAME>> [options]  // to create deployment out of image specified
+    Eg: $ kubectl create deployment mongodb_depl --image=mongo  // to create deployment out of mongo db image from docker hub
+  $ kubectl get deployment  // provides the summary of list of deployments available (eg: mongodb_depl)
+  $ kubectl get replicaset  // provides the summary of list of replica sets available (eg: mongodb_depl-7d9447675c)
+  $ kubectl get pod  // provides the summary of list of pods available (eg: mongodb_depl-7d9447675c-j9i8k)
+  $ kubectl get pod -o wide  // provides additional information of list of pods available (like ip address etc)
+  $ kubectl edit deployment <<DEPLOYMENT_NAME>>  // to edit/modify existing deployment
+    Eg: $ kubectl edit deployment mongodb_depl
+  $ kubectl describe pod <<POD_NAME>>  // to get the additional information about the POD
+  $ kubectl logs pod <<POD_NAME>>  // to get the log entries about the POD
+  $ kubectl exec -it <<POD_NAME>> --bin/bash  // to get the interactive terminal of the POD Container
+  $ kubectl delete <<DEPLOYMENT_NAME>>  // to delete the deployment and underlying replicaset, pod etc
+  $ kubectl apply -f <<CONFIG_FILE_NAME>>  // to apply the configurations mentioned and perform action accordingly. K8s know whether to create or update components based on the state/presence of the components. If they exist, it is updated. If not, it is created.
+
+
+Kubernetes YAML configuration file:
+===================================
+The YAML file consists of three parts.
+1. metadata:
+    - It contains the medata/information of the component itself. Eg: name of the component.
+
+2. spec:
+    - It contains the specification of the component which is used by K8s to build the component accordingly
+    - Its structure/elements vary based on the 'kind' value.
+	- Ideally each file will have nested spec propery. Outer one is for Deployment/Services. The inner spec is for the POD.
+
+3. status:
+    - This contains the current status of the component
+    - It is automatically generated/added/updated according to the change in cluster.
+	- This is done with the help of information obtained from ETCD.
+	- If the data in specification and status part does not match K8s perform action accordingly. This is called self healing.
+
+  - Labels and Selector:
+    - metadata contains labels and spec contains selector.
+	- selector in Deployment should be same as label inside the metadata of the pod. This establishes mapping between Deployment and the POD.
+	- This should also match with the selector in Service config file.
+
+  - Ports in Service and Pod:
+    - In Service config file, 'port: 80' tells that the service is available in the port 80.
+	- 'targetPort: 8080' speifies that the Service communicates with the underlying Pod at port 8080. This should match with containerPort in Deployment config file.
+
+Sample deployment configuration file (ngnix-deployment.yaml):
+-------------------------------------------------------------
+ 1  apiVersion: apps/v1
+ 2  kind: Deployment
+ 3  metadata:
+ 4    name: ngnix-deployment
+ 5    labels: 
+ 6      app: ngnix
+ 7  spec:
+ 8    replicas: 2
+ 9    selector:
+10      matchLabels:
+11        app: ngnix
+12    template:
+13      metadata:
+14        labels:
+15          app: ngnix
+16      spec:
+17        containers:
+18        - name: ngnix
+19          image: ngnix: 1.16
+20          ports:
+21            containerPort: 8080
+22  
+
+
+Sample service configuration file (ngnix-service.yaml):
+-------------------------------------------------------
+ 1  apiVersion: v1
+ 2  kind: Service
+ 3  metadata:
+ 4    name: ngnix-service
+ 5  spec:   
+ 6    selector:    
+ 7      app: ngnix
+ 8    ports:
+ 9      - protocol: TCP
+10        port: 80
+11        targetPort: 8080
+12  
+
+
+Demo with MongoDB and MongoExpress:
+===================================
+Objective:
+----------
+The objective of this project is to provide access to end users to access mongo-express application (pod) which will connect to mongo database (pod) to perform crud operation at return with response.
+
+Flow:
+-----
+1. Request reaches external service (mongo-express-service)
+2. The request is forwarded to mongo-express pod.
+3. To connect to database, URL and credentials are required. URL is configured using ConfigMaps and credentials are configured using Secret.
+4. Using the details from ConfigMaps and Secret, mongo-express pod contacts mongo-db-service which is internal service.
+5. The internal service then forwards the request to mongo-db pod to connect to actual database.
+6. When the request is processed, the response flows back to user.
+
+User --> mongo-express-service (Service) --> mongo-express (Pod) --> mongo-db-service (Internal Service) --> mongo-db (Pod)
+
+
+Step 1: Create secret to configure database credentials:
+--------------------------------------------------------
+
+mongodb-secret.yaml:
+--------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-secret
+type: Opaque
+data:
+  mongo-root-username: <<BASE64_OF_USERNAME>>
+  mongo-root-password: <<BASE64_OF_PASSWORD>>
+
+To get BASE64_OF_USERNAME, run the command "echo -n 'admin' | base64" in terminal, where admin is the username.
+To get BASE64_OF_PASSWORD, run the command "echo -n 'admin123' | base64" in terminal, where admin123 is the password.
+
+
+Load/Apply MongoDB Secret into the K8s cluster:
+  $ kubectl apply -f mongodb-secret.yaml
+
+
+
+Step 2: Create deployment for mongodb:
+--------------------------------------
+
+mongodb-deployment.yaml:
+------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  labels: 
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo
+        ports:
+          containerPort: 27017
+		env:
+		- name: MONGO_INITDB_ROOT_USERNAME
+		  valueFrom:
+		    secretKeyRef:
+			  name: mongodb-secret
+			  key: mongo-root-username
+		- name: MONGO_INITDB_ROOT_PASSWORD
+		  valueFrom:
+		    secretKeyRef:
+			  name: mongodb-secret
+			  key: mongo-root-password
+
+
+Load/Apply MongoDB Deployment into K8s cluster:
+  $ kubectl apply -f mongodb-deployment.yaml
+
+
+Step 3: Create internal service for mongodb:
+--------------------------------------------
+
+mongodb-service.yaml:
+---------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+spec:   
+  selector:    
+    app: mongodb  # to connect to POD through label
+  ports:
+    - protocol: TCP
+      port: 27017  # Service port
+      targetPort: 27017  # Container port
+
+
+Note:
+  - The Deployment and Service configurations can be defined in the same file as they work together.
+  - By default the service is internal. To make a service external the value of type should be 'LoadBalancer'
+
+
+Load/Apply the MongoDB Service into K8s cluster:
+  $ kubectl apply -f mongodb-service.yaml
+
+
+Step 4: Create configuration using ConfigMap:
+---------------------------------------------
+
+mongo-configmap.yaml:
+---------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-configmap
+data:
+  database_url: mongodb-service
+
+
+Load/Apply the MongoDB ConfigMap into K8s cluster:
+  $ kubectl apply -f mongodb-configmap.yaml
+
+
+
+Step 5: Create deployment for mongo-express:
+--------------------------------------------
+
+mongo-express.yaml:
+-------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  labels: 
+    app: mongo-express
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express
+        ports:
+          containerPort: 8081
+		env:
+		- name: ME_CONFIG_MONGODB_ADMINUSERNAME  # mongo db username
+		  valueFrom:
+		    secretKeyRef:
+			  name: mongodb-secret
+			  key: mongo-root-username
+		- name: ME_CONFIG_MONGODB_ADMINPASSWORD  # mongo db password
+		  valueFrom:
+		    secretKeyRef:
+			  name: mongodb-secret
+			  key: mongo-root-password
+	    - name: ME_CONFIG_MONGODB_SERVER  # to mention the database address to connect to
+		  valueFrom:
+		    configMapKeyRef:
+			  name: mongo-configmap
+			  key: database_url
+
+
+Load/Apply Mongo Deployment into K8s cluster:
+  $ kubectl apply -f mongo-express.yaml
+
+
+Step 6: Create external service for mongo-express:
+--------------------------------------------------
+
+mongo-express-service.yaml:
+---------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-service
+spec:   
+  selector:    
+    app: mongo-express  # to connect to POD through label
+	type: LoadBalancer  # to mention the service is external
+  ports:
+    - protocol: TCP
+      port: 27017  # Service port
+      targetPort: 27017  # Container port
+	  nodePort: 30000  # this is port exposed to outside world. Value should be in the range 32000-32767
+
+
+Note:
+  - The Deployment and Service configurations can be defined in the same file as they work together.
+  - By default the service is internal. To make a service external the value of type should be 'LoadBalancer'
+
+
+Load/Apply the Mongo-Express Service into K8s cluster:
+  $ kubectl apply -f mongo-express-service.yaml
+
+
+Namespaces in Kubernetes:
+=========================
+About:
+------
+  - Namspace is some virtual cluster inside K8s cluster.
+  - We can logically group components into one or more namespaces.
+
+Types:
+------
+  - kubernetes-dashboard: shipped along with minikube. Will not be available in typical production K8s setup.
+  - kube-system: It is for K8s system processes.
+  - kube-public: It contains publicly accessible data. Eg: ConfigMap
+  - kube-node-lease: Recent addition. Contains the heartbeats of the nodes in the cluster.
+  - default: This is the default namespace which is used by components that we create, unless we specify a user-defined namespace.
+
+
+Need for Namespaces in Kubernetes:
+----------------------------------
+1. To logically group the components:
+    - Everything in one default namespace is difficult to maintain. 
+	- Grouping them logically becomes easy to maintain.
+	- Eg: my-database and my-monitoring namespaces can have database and monitoring related components respectively.
+2. To avoid name conflict across muliple teams.
+3. Resource sharing across environments:
+    - Sharing resources like logging, elastic search in isolated component and using between development and staging namespaces.
+	- Resource sharing for blue-green deployment model. Same set of components can be added in 2 different namespaces (blue and green).
+5. Managing the access level for each namespace:
+    - Manage the access level to components based on certain context. 
+	- Like having 2 different namespaces for 2 teams and restricting access to only their namespace and underlying components.
+6. Resource Limiting for each namespaces: 
+    - Limit the resorces like cpu, memory etc based on the requirement for components in each namespace.
+
+
+Points to note:
+---------------
+  - Most of the components cannot be accessed from other namespaces. Eg: ConfigMaps, Secrets etc.
+  - However components like Service can be sharing across namepsaces.
+  - Some components cannot be created within a namespace. They should be created commonly only. Eg: Volumes, Nodes.
+
+  
+Ways to create namespace:
+-------------------------
+1. Using command line:
+    $ kubectl create namespace my-namespace
+2. By mentioning in the yaml file.
+   -----------------------------
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: mysql-configmap
+	  namespace: my-namespace
+   -----------------------------
+   
+  $ kubectl api-resources --namespaced=false  # to list common components outside of namespace
+  $ kubectl api-resources --namespaced=true
+  $ kubectl get configmap -n my-namespace  # to list the components within a namespace, the name should be specified
+
+
+
+Ingres in Kubernetes:
+=====================
+What/Why Ingress:
+-----------------
+  - Service components which provides permanent IP address for the underlying POD, it is not advisable to provide it to end users.
+  - i.e. 'https://my-k8s-app/' is recommended over 'http://123.45.678.9:8080'.
+  - For this, Ingres provides an abstraction layer on top of Service.
+
+
+Ingress Flow:
+-------------
+  - Incoming request -> Ingress Controller -> Ingres component -> Service -> POD -> Containerized application
+
+
+myapp-ingress.yaml:
+-------------------
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress  # tells it is a ingress configuration
+metadata:
+  name: myapp-ingress
+spec:
+  rules:
+  - host: myapp.com  # incoming request with this host name in url -> forwarded to internal service 'myapp-internal-service'
+    http:
+	  paths:
+	  - backend:
+	      serviceName: myapp-internal-service  # should be same as internal service's name
+		  servicePort: 8080  # should be same as service's port number
+
+
+Implementation Steps:
+---------------------
+
+Step 1: Define/Create an Ingress Controller:
+--------------------------------------------
+- Entry point to cluster.
+- Ingress Controller is used to
+  - evaluate all rules in the cluster.
+  - redirect the request to appropriate component.
+- K8s (K8s Ngnix Ingress Controller) and other third party provide their own implementation.
+
+  $ minikube addons enable ingress  # installs K8s Ngnix Ingress Controller
+  $ kubectl get pod -n kube-system  # to list pods in kube-system namespace. Also confirms that Ingress controller is installed
+
+
+Step 2: Create Ingress configuration file:
+------------------------------------------
+Let us now create a Ingress setup for Kubernetes-dashboard so that it is accessible from browser (by default, it is not).
+  $ kubectl get all -n kubernetes-dashboard  # to list all components in dashboard namespace
+
+dashboard-ingress.yaml:
+-----------------------
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress  # tells it is a ingress configuration
+metadata:
+  name: dashboard-ingress
+  namespace: kubernetes-dashboard  # the service and pod should be in same namespace as that of Ingress
+spec:
+  rules:
+  - host: dashboard.com
+    http:
+	  paths:
+	  - backend:
+	      serviceName: kubernetes-dashboard
+		  servicePort: 80
+
+Load/Apply ingress rule to K8s cluster:
+  $ kubectl apply -f dashboard-ingress.yaml
+
+
+Step 3: Add entry in /etc/hosts file:
+-------------------------------------
+Add the entry of host 'dashboard.com' in /etc/hosts file.
+
+192.168.64.5	dashboard.com
+
+
+Ingress Default Backend:
+------------------------
+  $ kubectl describe ingress dashboard-ingress -n kubernetes-dashboard
+
+The above command shows detailed information about the ingress along with info about default-backend.
+For a given request, if none of the rules that was defined in ingress files are met, default-backend handles appropriately.
+
+
+We can define multiple paths for same host. Multiple paths in single host.
+Eg:
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+...
+spec:
+  rules:
+    - host: myapp.com
+	  http:
+	    paths:
+		- path: /about
+		  backend:
+		    serviceName: about-page-service
+		    servicePort: 3000
+        - path: /contactus
+		  backend:
+		    serviceName: contactus-page-service
+		    servicePort: 3100
+
+
+We can also have sub-domain for a given host. Multiple hosts with 1 path for each.
+Eg:
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+...
+spec:
+  rules:
+    - host: about.myapp.com
+	  http:
+	    paths:
+		- path: /about
+		  backend:
+		    serviceName: about-page-service
+		    servicePort: 3000
+	- host: contactus.myapp.com
+	  http:
+	    paths:
+		- path: /about
+		  backend:
+		    serviceName: about-page-service
+		    servicePort: 3000
+
+
+Configuring https using TLS certificate:
+========================================
+
+
+myapp-secret-tls.yaml:
+--------------------
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: myapp-secret-tls
+  namespace: default
+data:
+  tls.ctr: <<BASE64_OF_CERT_CONTENT>>
+  mongo-root-password: <<BASE64_OF_CERT_KEY>>
+
+
+myapp-tls-ingress.yaml:
+-----------------------
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: myapp-tls-ingress
+spec:
+  tls:
+  - hosts:
+    - myapp.com
+	secretName: myapp-secret-tls
+  rules:
+  - host: myapp.com
+    http:
+	  paths:
+	  - backend:
+	      serviceName: myapp-internal-service
+		  servicePort: 80
+
+
+HELM - Package Manager:
+=======================
+Helm Use Cases:
+---------------
+1. As Package Manager for K8s:
+------------------------------
+  - To package a group of YAML files and distribute them to public (internet) and private repositories (intranet within company). 
+  - Similar to npm, yum, homebrew etc.
+  - Eg: 
+    - Consider you want to add Elastic Search, Monitoring feature in you K8s cluster.
+	- All required YAML files for a particular functionality is bundled together and is called Helm Chart.
+  - We can create our own Helm chart and share it with others or use publicly available Helm charts for our project.
+
+2. As a Templating Engine:
+--------------------------
+  - Consider our application has many microservices that has similar content of Yaml file. Most of the content is same except for few values like image name, version etc. 
+  - Using Template files, we can have one YAML file for all microservices and have placeholders for values that change.
+    Eg: image: {{ .Values.container.name }}
+  - These values are loaded at runtime 
+    - By using --set flag in command line.
+	- from values.yaml file (recommended).
+
+3. Using Template files across environments:
+--------------------------------------------
+  - Using Template files we can have single Yaml file and use placeholders for values that are environment specific.
+
+
+Helm Chart Structure:
+---------------------
+myChart/			# name of the chart
+  Chart.yaml		# metadata about chart
+  values.yaml		# values to be replaced in template files
+  charts/			# chart dependencies
+  templates/		# actual template file
+  ..
+
+Values injection into template file:
+------------------------------------
+  - The values.yaml file contains the default values that needs to be inserted in the template file placeholder.
+  - This can be overridden by     
+  - setting values directly on command line as "helm install --set version=2.0.0"
+  - setting values using my-values yaml file on command line as "helm install --values=myvalues.yaml <<CHART_NAME>>"
+
+
+Volumes in Kubernetes:
+======================
+- Consider a database is mounted on a POD. Application from another POD creates/updates data in the database.
+- Now when the POD is restarted or crashes, the data is lost.
+- To avoid this data loss, K8s uses Volumes.
+
+Requirement for Volumes:
+------------------------
+1. Volume storage should not depend on POD's lifecycle.
+2. Volume should be available across the Nodes, because the new POD which replaces a crashed POD can be placed in any available Node.
+3. Storage need to survive even if the entire cluster crashes.
+
+Note: We can also use Volumes to store files and folders.
+
+
+Persistent Volume:
+------------------
+- It is the abstract layer of actual storage which the cluster is going to use.
+- The actual storage can be local drive, storage inside cluster or cloud provider storage.
+- Any given Node can use more than one type of storage at the same time.
+- It is the responsibility of DevOps administrator to manage the actual storage.
+- It is created using Yaml file.
+- Persistent Volumes are NOT namespaced
+
+my-persistent-vol.yaml:
+-----------------------
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-persistent-vol
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: slow
+  mountOptions:
+    - hard
+	- nfsvers=4.0
+  nfs:
+    path: /dir/path/on/nfs/server
+	server: nfs-server-ip-address
+
+
+Persistent Volume Claim:
+------------------------
+- User first provides information about the storage type and other parameters using yaml file.
+- DevOps admin then creates volume based on the requirement which points to actual storage.
+- Now the user has to claim the volume using Persistent Volume Claim (PVC).
+- So PVC will act as a abstract layer between the Persistent Volume and the Node that uses it.
+- PVC is again defined using PersistentVolumeClaim yaml file.
+- The PVC name is then referenced in POD yaml file that uses it. So the POD and the containers inside it can access the PVC.
+- Unlike PV, PVCs are namespaced and should be same as that of POD.
+
+
+Storage Class:
+--------------
+- Consider the cluster contains few microservices which uses some volumes.
+- As the application grows, the number of services and the volumes it uses increases and becomes difficult to manage manually.
+- Storage class is used to automate this process.
+
+
+
+
+
+
+  
+
+
+
+
+
+
+Kubernetes with Java Techie (Basan):
+====================================
+
+Deploy and run hello-world springboot application in Kubernetes - (using commands):
+===================================================================================
+
+1. Create a hello world spring boot project as follows. This helps to display a message when the url is hit.
+
+@SpringBootApplication
+@RestController
+public class MySpringBootAppForK8s {
+
+  @GetMapping("/message")
+  public String displayMessage(){  return "Hello world SpringBoot application from K8s cluster";  }
+
+  public static void main(String[] args) {  SpringApplication.run(MySpringBootAppForK8s.class);  }
+}
+
+
+2. Create a DockerFile for the application to generate image.
+  FROM openjdk:8
+  EXPOSE 8080
+  ADD target/springboot-k8s-demo.jar springboot-k8s-demo.jar
+  ENTRYPOINT["java", "-jar", "springboot-k8s-demo.jar"]
+
+
+3. Create docker image for the application.
+  $ eval ${minikube docker-env}  // command for minikube to locate the local docker repository
+  $ docker build -t springboot-k8s-demo:1.0 .    // command to build docker image
+
+
+4. Create deployment by mentioning the image created in the previous step.
+  $ kubectl create deployment spring-boot-k8s --image=springboot-k8s-demo:1.0 --port=8080
+
+
+5. Create a Service so that application can be accessed from outside the cluster. Expose the deployment so that it can be used.
+  $ kubectl expose deployment spring-boot-k8s --type=NodePort
+
+
+6. Run the below command to get the url of Service.
+  $ minikube service spring-boot-k8s --url
+
+
+7. Access the endpoint to see the desired result/message.
+
+
+
+
+Deploy and run hello-world springboot application in Kubernetes - (using yaml configuration):
+=============================================================================================
+
+1. Create a hello world spring boot project as follows. This helps to display a message when the url is hit.
+
+@SpringBootApplication
+@RestController
+public class MySpringBootAppForK8s {
+
+  @GetMapping("/message")
+  public String displayMessage(){  return "Hello world SpringBoot application from K8s cluster";  }
+
+  public static void main(String[] args) {  SpringApplication.run(MySpringBootAppForK8s.class);  }
+}
+
+
+2. Create a DockerFile for the application to generate image.
+  FROM openjdk:8
+  EXPOSE 8080
+  ADD target/springboot-k8s-demo.jar springboot-k8s-demo.jar
+  ENTRYPOINT["java", "-jar", "springboot-k8s-demo.jar"]
+
+
+3. Create docker image for the application.
+  $ eval ${minikube docker-env}  // command for minikube to locate the local docker repository
+  $ docker build -t springboot-k8s-demo:1.0 .    // command to build docker image
+
+
+4. Create deployment by mentioning the image created in the previous step.
+
+    my-deployment.yml:
+	------------------
+	apiVersion: apps/v1
+	kind: Deployment # Kubernetes resource kind we are creating
+	metadata:
+	  name: spring-boot-k8s
+	spec:
+	  selector:
+		matchLabels:
+		  app: spring-boot-k8s
+	  replicas: 2 # Number of replicas that will be created for this deployment
+	  template:
+		metadata:
+		  labels:
+			app: spring-boot-k8s
+		spec:
+		  containers:
+			- name: spring-boot-k8s
+			  image: springboot-k8s-example:1.0 
+	# Image that will be used to containers in the cluster
+			  imagePullPolicy: IfNotPresent
+			  ports:
+				- containerPort: 8080 
+	# The port that the container is running on in the cluster
+
+
+5. Create a Service so that application can be accessed from outside the cluster. Expose the deployment so that it can be used.
+
+
+	my-service.yaml:
+	----------------
+	apiVersion: v1 # Kubernetes API version
+	kind: Service # Kubernetes resource kind we are creating
+	metadata: # Metadata of the resource kind we are creating
+	  name: springboot-k8s-svc
+	spec:
+	  selector:
+		app: spring-boot-k8s
+	  ports:
+		- protocol: "TCP"
+		  port: 8080 # The port that the service is running on in the cluster
+		  targetPort: 8080 # The port exposed by the service
+	  type: NodePort # type of the service.
+
+
+6. Run the below command to get the url of Service.
+  $ minikube service spring-boot-k8s --url
+
+
+7. Access the endpoint to see the desired result/message.
+
+
+
+Deploying SpringBoot application on AWS EKS (Elastic Kubernetes Service) service:
+=================================================================================
+
+Reference - https://www.youtube.com/watch?v=mVSFHgItaa4&list=PLVz2XdJiJQxybsyOxK7WFtteH42ayn5i9&index=11

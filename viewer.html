@@ -1,106 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Text Viewer</title>
-    <style>
-      body {
-        background-color: #445566;
-        color: #ffffff;
-        font-family: "Consolas", "Courier New", monospace;
-        padding: 20px;
-      }
-      h2 {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        border-bottom: 2px solid #88cc88;
-        margin-bottom: 20px;
-      }
-      pre {
-        background-color: #333f4f;
-        color: #cceecc;
-        padding: 15px;
-        border-radius: 8px;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-      }
-      a {
-        color: #aaffaa;
-        text-decoration: none;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-    </style>
-  </head>
-  <body>
-    <h2 id="file-title">Text File Viewer</h2>
-    <p><a href="index.html">← Back to Index</a></p>
-    <pre id="text-content">Loading...</pre>
+	<head>
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+		<meta charset="UTF-8" />
+		<title>Text Viewer</title>
+		<style>
+			body {
+				background-color: #445566;
+				color: #ffffff;
+				font-family: "Consolas", "Courier New", monospace;
+				padding: 20px;
+			}
+			h2 {
+				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+				border-bottom: 2px solid #88cc88;
+				margin-bottom: 20px;
+			}
+			pre {
+				background-color: #333f4f;
+				color: #cceecc;
+				padding: 15px;
+				border-radius: 8px;
+				white-space: pre-wrap;
+				word-wrap: break-word;
+			}
+			a {
+				color: #aaffaa;
+				text-decoration: none;
+			}
+			a:hover {
+				text-decoration: underline;
+			}
+		</style>
+	</head>
+	<body>
+		<h2 id="file-title">Text File Viewer</h2>
+		<p><a href="index.html">
+			<span class="material-symbols-outlined">arrow_back</span>
+		</a></p>
+		<pre id="text-content">Loading...</pre>
 
-    <script>
-	  console.log("window.location.search :" + window.location.search);
-      const params = new URLSearchParams(window.location.search);
-	  console.log("params :" + params);
-      const file = params.get("file");
-	  console.log("file :" + file);
+		<script>
+		  console.log("window.location.search :" + window.location.search);
+		  const params = new URLSearchParams(window.location.search);
+		  console.log("params :" + params);
+		  const file = params.get("file");
+		  console.log("file :" + file);
 
-      const titleEl = document.getElementById("file-title");
-      const contentEl = document.getElementById("text-content");
+		  const titleEl = document.getElementById("file-title");
+		  const contentEl = document.getElementById("text-content");
 
-      if (file) {
-        const displayName = decodeURIComponent(
-          file
-            .split("/")
-            .pop()
-            .replace(".txt", "")
-            .replace(/[_-]/g, " ")
-            .replace(/([A-Z])/g, " $1")
-            .replace(/\s+/g, " ")
-            .trim()
-        );
-		console.log("displayName :" + displayName)
-        titleEl.textContent = displayName;
+		  if (file) {
+			const displayName = decodeURIComponent(
+			  file
+				.split("/")
+				.pop()
+				.replace(".txt", "")
+				.replace(/[_-]/g, " ")
+				.replace(/([A-Z])/g, " $1")
+				.replace(/\s+/g, " ")
+				.trim()
+			);
+			console.log("displayName :" + displayName)
+			titleEl.textContent = displayName;
 
-        const rawUrl = `https://raw.githubusercontent.com/BarathKumarB08/BBK_TECH_HUB/main/${file}`;
-		console.log("rawUrl :" + rawUrl)
-        fetch(rawUrl)
-          .then((response) => {
-            if (!response.ok) throw new Error("File not found");
-            return response.text();
-          })
-          .then((text) => {
-		  console.log("text :" + text)
-            contentEl.textContent = text;
-          })
-          .catch((err) => {
-		  console.log("err :" + err)
-		  console.log("errMsg :" + err.message)
-            contentEl.textContent = "Error loading file.";
-          });
-      } else {
-        titleEl.textContent = "No File Specified";
-        contentEl.textContent = "Please provide a file name in the URL.";
-      }
+			const rawUrl = `https://raw.githubusercontent.com/BarathKumarB08/BBK_TECH_HUB/main/${file}`;
+			console.log("rawUrl :" + rawUrl)
+			fetch(rawUrl)
+			  .then((response) => {
+				if (!response.ok) throw new Error("File not found");
+				return response.text();
+			  })
+			  .then((text) => {
+			  console.log("text :" + text)
+				contentEl.textContent = text;
+			  })
+			  .catch((err) => {
+			  console.log("err :" + err)
+			  console.log("errMsg :" + err.message)
+				contentEl.textContent = "Error loading file.";
+			  });
+		  } else {
+			titleEl.textContent = "No File Specified";
+			contentEl.textContent = "Please provide a file name in the URL.";
+		  }
 
-      // Light/Dark Theme Support (with localStorage safety)
-      document.addEventListener("DOMContentLoaded", () => {
-        try {
-          const savedTheme = localStorage.getItem("theme");
-          if (savedTheme === "light") {
-            document.body.style.backgroundColor = "#f4f4f4";
-            document.body.style.color = "#222";
-            const pre = document.querySelector("pre");
-            if (pre) {
-              pre.style.backgroundColor = "#eeeeee";
-              pre.style.color = "#333";
-            }
-            const link = document.querySelector("a");
-            if (link) link.style.color = "#007700";
-          }
-        } catch (e) {
-          console.warn("localStorage is not available in this context:", e);
-        }
-      });
-    </script>
-  </body>
+		  // Light/Dark Theme Support (with localStorage safety)
+		  document.addEventListener("DOMContentLoaded", () => {
+			try {
+			  const savedTheme = localStorage.getItem("theme");
+			  if (savedTheme === "light") {
+				document.body.style.backgroundColor = "#f4f4f4";
+				document.body.style.color = "#222";
+				const pre = document.querySelector("pre");
+				if (pre) {
+				  pre.style.backgroundColor = "#eeeeee";
+				  pre.style.color = "#333";
+				}
+				const link = document.querySelector("a");
+				if (link) link.style.color = "#007700";
+			  }
+			} catch (e) {
+			  console.warn("localStorage is not available in this context:", e);
+			}
+		  });
+		</script>
+	</body>
 </html>

@@ -1,0 +1,409 @@
+SPRING MVC TUTORIAL
+===================
+
+1. Overview
+2. What Is Spring MVC?
+3. Spring MVC Using Java Configuration
+4. Spring MVC Using XML Configuration
+5. Controller and Views
+6. Spring MVC With Boot
+6.1. Spring Boot Starters
+6.2. Spring Boot Entry Point
+
+
+in28Minutes:
+------------
+https://www.youtube.com/watch?v=BjNhGaZDr0Y
+
+
+Telusko:
+--------
+https://www.youtube.com/watch?v=g2b-NbR48Jo
+https://www.youtube.com/watch?v=BkRZfxznaOo&list=PLsyeobzWxl7rjSO6xX00UWmVhL90i-cOk
+
+
+
+
+
+
+
+
+SPRING MVC:
+
+The DispatcherServlet
+The Spring Web model-view-controller (MVC) framework is designed around a DispatcherServlet that handles all the HTTP requests and responses. 
+
+
+Flow:
+=====
+1. DISPATCHER SERVLET - Every request is accepted by DispatcherServlet within Spring MVC.
+2. HANDLER MAPPING - The DispatcherServlet consults the HandlerMapping to call the appropriate Controller.
+3. CONTROLLER - The Controller takes the request and calls the appropriate service methods based on used GET or POST method. 
+4. MODEL AND VIEW - The service method will set model data based on defined business logic and returns view name to the DispatcherServlet as ModelAndView object.
+5. VIEW RESOLVER - The DispatcherServlet will take help from ViewResolver to pick up the appropriate view for the request.
+6. VIEW - Once view is finalized, The DispatcherServlet passes the model data to the view, which is finally rendered on the browsers.
+
+
+
+Spring MVC - Hello World Example:
+
+package com.tutorialspoint;
+
+@Controller
+@RequestMapping("/hello")
+public class HelloController{
+ 
+   @RequestMapping(method = RequestMethod.GET)
+   public String printHello(ModelMap model) {
+      model.addAttribute("message", "Hello Spring MVC Framework!");
+      return "hello";
+   }
+}
+
+
+web.xml:
+
+<web-app>
+   <display-name>Spring MVC Application</display-name>
+   <servlet>
+      <servlet-name>HelloWeb</servlet-name>
+      <servlet-class>
+         org.springframework.web.servlet.DispatcherServlet
+      </servlet-class>
+      <load-on-startup>1</load-on-startup>
+   </servlet>
+   <servlet-mapping>
+      <servlet-name>HelloWeb</servlet-name>
+      <url-pattern>/</url-pattern>
+   </servlet-mapping>
+</web-app>
+
+
+HelloWeb-servlet.xml: // [servlet-name]-servlet.xml
+
+<beans>
+   <context:component-scan base-package = "com.tutorialspoint" />
+   <bean class = "org.springframework.web.servlet.view.InternalResourceViewResolver">
+      <property name = "prefix" value = "/WEB-INF/jsp/" />
+      <property name = "suffix" value = ".jsp" />
+   </bean>
+</beans>
+
+
+hello.jsp:
+
+<%@ page contentType = "text/html; charset = UTF-8" %>
+<html>
+   <head>
+      <title>Hello World</title>
+   </head>
+   <body>
+      <h2>${message}</h2>
+   </body>
+</html>
+
+
+
+
+Spring MVC - Form Handling Example:
+
+
+Student.java:
+
+public class Student {
+   private Integer age;
+   private String name;
+   private Integer id;
+
+   public void setAge(Integer age) {
+      this.age = age;
+   }
+   public Integer getAge() {
+      return age;
+   }
+
+   public void setName(String name) {
+      this.name = name;
+   }
+   public String getName() {
+      return name;
+   }
+
+   public void setId(Integer id) {
+      this.id = id;
+   }
+   public Integer getId() {
+      return id;
+   }
+}
+
+
+StudentController.java:
+
+package com.tutorialspoint;
+
+@Controller
+public class StudentController {
+
+   @RequestMapping(value = "/student", method = RequestMethod.GET)
+   public ModelAndView student() {
+      return new ModelAndView("student", "command", new Student());
+   }
+   
+   @RequestMapping(value = "/addStudent", method = RequestMethod.POST)
+   public String addStudent(@ModelAttribute("SpringWeb")Student student, 
+   ModelMap model) {
+      model.addAttribute("name", student.getName());
+      model.addAttribute("age", student.getAge());
+      model.addAttribute("id", student.getId());
+      
+      return "result";
+   }
+}
+
+
+student.jsp:
+
+<%@taglib uri="http://www.springframework.org/tags/form" prefix = "form"%>
+<html>
+   <head>
+      <title>Spring MVC Form Handling</title>
+   </head>
+   
+   <body>
+      <h2>Student Information</h2>
+      <form:form method = "POST" action = "/HelloWeb/addStudent">
+         <table>
+            <tr>
+               <td><form:label path = "name">Name</form:label></td>
+               <td><form:input path = "name" /></td>
+            </tr>
+            <tr>
+               <td><form:label path = "age">Age</form:label></td>
+               <td><form:input path = "age" /></td>
+            </tr>
+            <tr>
+               <td><form:label path = "id">id</form:label></td>
+               <td><form:input path = "id" /></td>
+            </tr>
+            <tr>
+               <td colspan = "2">
+                  <input type = "submit" value = "Submit"/>
+               </td>
+            </tr>
+         </table>  
+      </form:form>
+   </body>
+</html>
+
+
+result.jsp:
+
+<%@taglib uri = "http://www.springframework.org/tags/form" prefix = "form"%>
+<html>
+   <head>
+      <title>Spring MVC Form Handling</title>
+   </head>
+   <body>
+
+      <h2>Submitted Student Information</h2>
+      <table>
+         <tr>
+            <td>Name</td>
+            <td>${name}</td>
+         </tr>
+         <tr>
+            <td>Age</td>
+            <td>${age}</td>
+         </tr>
+         <tr>
+            <td>ID</td>
+            <td>${id}</td>
+         </tr>
+      </table>  
+   </body>
+</html>
+
+
+And finally hit the URL: http://localhost:8080/SpringWeb/student
+
+
+
+Spring MVC - Page Redirection Example:
+
+
+@Controller
+public class WebController {
+
+   @RequestMapping(value = "/index", method = RequestMethod.GET)
+   public String index() {
+	   return "index";
+   }
+   
+   @RequestMapping(value = "/redirect", method = RequestMethod.GET)
+   public String redirect() {
+      return "redirect:finalPage";
+   }
+   
+   @RequestMapping(value = "/finalPage", method = RequestMethod.GET)
+   public String finalPage() {
+      return "final";
+   }
+}
+
+
+index.jsp:
+
+<%@taglib uri = "http://www.springframework.org/tags/form" prefix = "form"%>
+<html>
+   <head>
+      <title>Spring Page Redirection</title>
+   </head>
+   <body>
+      <h2>Spring Page Redirection</h2>
+      <p>Click below button to redirect the result to new page</p>
+      <form:form method = "GET" action = "/HelloWeb/redirect">
+         <table>
+            <tr>
+               <td>
+                  <input type = "submit" value = "Redirect Page"/>
+               </td>
+            </tr>
+         </table>  
+      </form:form>
+   </body>
+</html>
+
+
+final.jsp:
+
+<%@taglib uri = "http://www.springframework.org/tags/form" prefix = "form"%>
+<html>
+   
+   <head>
+      <title>Spring Page Redirection</title>
+   </head>
+   
+   <body>
+      <h2>Redirected Page</h2>
+   </body>
+
+</html>
+
+
+
+Spring MVC - Static Pages Example:
+
+
+@Controller
+public class WebController {
+
+   @RequestMapping(value = "/index", method = RequestMethod.GET)
+   public String index() {
+	   return "index";
+   }
+   
+   @RequestMapping(value = "/staticPage", method = RequestMethod.GET)
+   public String redirect() {
+     
+      return "redirect:/pages/final.htm";
+   }
+}
+
+
+<beans>
+   <context:component-scan base-package = "com.tutorialspoint" />
+     
+   <bean id = "viewResolver" class = "org.springframework.web.servlet.view.InternalResourceViewResolver">
+      <property name = "prefix" value = "/WEB-INF/jsp/" />
+      <property name = "suffix" value = ".jsp" />
+   </bean>
+
+   <mvc:resources mapping = "/pages/**" location = "/WEB-INF/pages/" />
+   <mvc:annotation-driven/>
+</beans>
+
+
+
+InternalResourceViewResolver:
+
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+    <property name="prefix" value="/WEB-INF/jsp/" />
+    <property name="suffix" value=".jsp" />
+</bean>
+
+
+ResourceBundleViewResolver
+
+<bean class="org.springframework.web.servlet.view.ResourceBundleViewResolver">
+    <property name="basename" value="views" />
+</bean>
+
+
+
+
+<context:annotation-config> vs <context:component-scan>:
+
+1) First big difference between both tags is that <context:annotation-config> is used to activate applied annotations in already registered beans in application context. Note that it simply does not matter whether bean was registered by which mechanism e.g. using <context:component-scan> or it was defined in application-context.xml file itself.
+
+2) Second difference is driven from first difference itself. It does register the beans in context + it also scans the annotations inside beans and activate them. So <context:component-scan>; does what <context:annotation-config> does, but additionally it scan the packages and register the beans in application context.
+
+
+Examples:
+
+a) Define only bean tags
+<bean id="beanA" class="com.howtodoinjava.beans.BeanA"></bean>
+<bean id="beanB" class="com.howtodoinjava.beans.BeanB"></bean>
+<bean id="beanC" class="com.howtodoinjava.beans.BeanC"></bean>
+ 
+Output:
+Creating bean BeanA
+Creating bean BeanB
+Creating bean BeanC
+
+b) Define bean tags and property ref attributes
+<bean id="beanA" class="com.howtodoinjava.beans.BeanA">
+    <property name="beanB" ref="beanB"></property>
+    <property name="beanC" ref="beanC"></property>
+</bean>
+<bean id="beanB" class="com.howtodoinjava.beans.BeanB"></bean>
+<bean id="beanC" class="com.howtodoinjava.beans.BeanC"></bean>
+ 
+Output:
+Creating bean BeanA
+Creating bean BeanB
+Creating bean BeanC
+Setting bean reference for BeanB
+Setting bean reference for BeanC
+
+
+c) Using only <context:annotation-config />
+<context:annotation-config />
+ 
+//No Output
+
+
+d) Using <context:annotation-config /> with bean declarations
+<context:annotation-config />
+<bean id="beanA" class="com.howtodoinjava.beans.BeanA"></bean>
+<bean id="beanB" class="com.howtodoinjava.beans.BeanB"></bean>
+<bean id="beanC" class="com.howtodoinjava.beans.BeanC"></bean>
+ 
+Output:
+Creating bean BeanA
+Creating bean BeanB
+Setting bean reference for BeanB
+Creating bean BeanC
+Setting bean reference for BeanC
+
+
+e) Using only <context:component-scan />
+<context:component-scan base-package="com.howtodoinjava.beans" />
+ 
+Output:
+Creating bean BeanA
+Creating bean BeanB
+Setting bean reference for BeanB
+Creating bean BeanC
+Setting bean reference for BeanC

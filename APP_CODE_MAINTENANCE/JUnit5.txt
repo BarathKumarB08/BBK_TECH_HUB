@@ -1,0 +1,264 @@
+================
+JUNIT 5 TUTORIAL
+================
+
+What is new in JUnit 5?
+======================
+1. JUnit 4 was monolithic, whereas JUnit 5 was modularized.
+
+
+Components of JUnit 5:
+======================
+Unit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+- JUnit Jupiter: Contains annotations and TestEngine implementation to run tests.
+- JUnit Platform: It defines the TestEngine API for developing new testing frameworks that runs on the platform.
+    It also provides a Console Launcher to launch the platform from the command line and build plugins for Gradle and Maven.
+- JUnit Vintage: To support running JUnit 3 and 4 written tests on the JUnit 5 platform. For backward compatibility.
+- EXT (3rd party): Provides ability to write your own extentions to perform unit testing.
+
+
+JUnit 5 Architecture:
+=====================
+Platform:
+  - Core of JUnit Architecture. It provides way to run test.
+  - Developers do not interact with Platform directly.
+  - Instead they interact with JUnit API (Jupiter).
+
+Jupiter:
+  - This contains JUnit API which developer interact with most of the times.
+
+Vintage:
+  - Another set of JUnit API which is used to run older unit tests.
+
+Ext:
+  - Support for adding thrid party APIs to JUnit.
+
+
+To use Junit to your application, following dependencies need to be added. Add <scope>test</scope> for all junit dependencies so that the code does not add to actual code during build.
+- junit-jupiter-engine
+- junit-jupiter-api
+- junit-vintage-engine (for backward compatibility)
+
+
+Creating first Junit Test:
+==========================
+pom.xml:
+
+<properties>
+  <junit.jupiter.version>5.4.0</junit.jupiter.version>
+</properties>
+
+<dependencies>
+  <dependency>
+    <groupId>org.junit.jupiter</groupId>
+	<artifactId>junit-jupiter-engine</artifactId>
+	<version>${junit.jupiter.version}</version>
+	<scope>test</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.junit.jupiter</groupId>
+	<artifactId>junit-jupiter-api</artifactId>
+	<version>${junit.jupiter.version}</version>
+	<scope>test</scope>
+  </dependency>
+</dependencies>
+
+MathUtils.java:
+class MathUtils {
+  public int add(int a, int b) { return (a+b); }
+}
+
+MathUtilsTest.java:
+class MathUtilsTest {
+  @Test  // This annotation tells that this method needs to be run as part of JUnit execution
+  public void testAdd() {
+    MathUtils mathUtilsObj = new MathUtils();
+	int expected = 3;
+	int actual = mathUtilsObj.add(1,2);
+	assertEquals(expected, actual); // Comparing Actual and Expected.
+	assertEquals(expected, actual, "The add method should add two methods"); // The 3rd parameter will print when the test fails, so that developers can understand better.
+  }
+}
+
+AssertEquals() - Asserts that expected and actual are equal for a single value
+AssertArrayEquals() - Asserts that expected and actual are equal by comparing each corresponding element in both the arrays.
+AssertIterableEquals() - Asserts that expected and actual are equal by comparing each corresponding element in both the Iterable object.
+
+
+Test Driven Development:
+========================
+In this approach, we write test methods first and write the actual implementation of the functionality.
+
+
+Maven surefire plugin:
+======================
+To run tests in higher environment, eclipse cannot be used.
+We need to have command line option to run them. Maven surefire is used for the same.
+
+pom.xml:
+<build>
+  <plugins>
+    <plugin>
+	  <artifactId>maven-surefire-plugin</artifactId>
+	  <version>2.22.1</version>
+    <plugin>
+  <plugins>
+<build>
+
+
+
+Asserting exceptions with assertThrows:
+=======================================
+Sometimes, the method under test is expected to throw certain exception. To validate that, we can use assertThrows method.
+
+public class MathUtils {
+  public int divide(int a, int b) {
+    return a / b;
+  }
+}
+
+class MathUnitTest {
+  @Test
+  void testDivide() {
+    MathUtils mObj = new MathUtils();
+	assertThrows(ArithmeticException.class, () -> mObj.divide(1, 0));
+	assertThrows(ArithmeticException.class, () -> mObj.divide(1, 0), "Number divided by zero should throw exception"); // The 3rd parameter will print when test does not throw exception, so that developers can understand better.
+	assertEquals(expected, actual, "Divide by Zero should be thrown");
+  }
+}
+
+
+
+JUnit Lifecycle and hook methods:
+=================================
+@BeforeAll - initialization method that runs before all the test methods.
+@AfterAll - tear down method that runs after all the test methods.
+@BeforeEach - initialization method that runs before each of the test methods.
+@AfterEach - tear down method that runs after all the test methods.
+
+Note: BeforeAll method runs even before the instance of the test class is created. So the method annotated with BeforeAll/AfterAll should be marked static.
+
+
+Changing default TestInstance behavior:
+=======================================
+Consider you have a member variable of the Test class and the value of that variable need to be shared across the test methods.
+By default the Test instance is created freshly for each test method. However this behavior can be changed.
+@TestInstance(TestInstance.Lifecycle.PER_METHOD) - default behavior
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+
+
+Using DisplayName and Disabled annotations:
+===========================================
+@DisplayName - annotation on top of test class or method to display a meaningful name in the test result.
+@Ignored / @Disabled - To ignore / disable one or more tests' execution without deleting or commenting it. Useful in TTD model. @Disabled was introduced in Junit 5.
+
+
+Conditional Execution and Assumption:
+=====================================
+@EnabledOnOs - Marking a class with specific operating system (eg: OS.LINUX), will run the test only on that OS and disabled in other OS.
+@EnabledOnJre - Marking a class with specific JRE version (eg: JRE.JAVA_11), will run the test only on that JRE version and disabled in other versions.
+@EnabledIf
+@EnabledIfSystemProperty
+@EnabledIfEnvironmentVariable
+
+
+assumeThat() - this method is similar to @Enabledxxx annotations. But it gives programatic control to decide whether to run a code or not at runtime.
+
+@Test
+void myTestMethod(){
+boolean isServerUp = ... // logic to determine if the remote server is up or not.
+assumeThat(isServerUp);
+assertEquals(....);
+}
+
+
+Using AssertAll:
+================
+To run a list of assertions together.
+If all assert statments passed, only then the assertAll resolves to true.
+Eg:
+@Test
+void testMultiply(){
+  assertAll(
+    () -> assertEquals(4, mObj.multiply(2, 2)),
+    () -> assertEquals(0, mObj.multiply(2, 0)),
+    () -> assertEquals(-2, mObj.multiply(2, -1))
+  );
+}
+
+
+Nested Tests:
+=============
+class MathUnitTest {
+  @Nested
+  class AddTest {
+    @Test
+	@DisplayName("When adding two positive numbers")
+    void testAddPositive() {
+	  assertEquals(2, mObj.add(1, 1), "should return the right sum");
+    }
+    @Test
+	@DisplayName("When adding two negative numbers")
+    void testAddPositive() {
+	  assertEquals(-2, mObj.add(-1, -1), "should return the right sum");
+    }
+  }
+
+  @Test
+  void testDivide() {
+	assertThrows(ArithmeticException.class, () -> mObj.divide(1, 0));
+	assertEquals(expected, actual, "Divide by Zero should be thrown");
+  }
+}
+
+
+Using @RepeatedTest:
+====================
+To repeat a test n number of times.
+Eg:
+@RepeatedTest(4)
+void calcSum(RepetitionInfo repetitionInfo) {
+  repetitionInfo.getCurrentRepetition();  // to get the current iteration in repetition
+  repetitionInfo.getTotalRepetitions();  // to get the total number of repetitions
+  assertEquals(..);
+}
+
+@RepeatedTest(3) // runs test 3 times
+void test calcCircleArea(RepetitionInfo repetitionInfo) {
+  int iter = repetitionInfo.getCurrentRepetition(); // get the current iteration value
+  assertEquals(314.1592653, mathUtilsObj.computeCircleArea(10), "message...")
+}
+
+
+Using Supplier for assert messages:
+===================================
+Consider the below code
+  - assertEquals(expected, actual, "should return " + expected + " but returned " + actual);
+In the above example, the string computation is expensive. There could be cases where we might have more expensive computation. By default, this operation gets executed whether the expression resolves to true or false.
+To avoid this, we can use supplier, to achieve lazy execution.
+  - assertEquals(expected, actual, () -> "should return " + expected + " but returned " + actual);
+
+
+Tagging tests with @Tag:
+========================
+We can tag test classes or methods so that, we can configure later to include or exclude tests based on the tags mentioned.
+MathUtilsTest.java:
+class MathUtilsTest {
+  MathUtils mathUtilsObj;
+  TestInfo testInfo;
+  TestReporter testReporter;
+  
+  @BeforeEach
+  void init(TestInfo testInfo, TestReporter testReporter) {
+    this.testInfo = testInfo;
+    this.testReporter = testReporter;
+    mathUtilsObj = new MathUtils();
+	testReporter.publishEntry("Running " + testInfo.getDisplayName() + " with tags " + testInfo.getTags());
+  }
+
+  @Test
+  public void testDivide() {
+    System.out.println("Running " + testInfo.getDisplayName() + " with tags " + testInfo.getTags()); // prints the message in standard (IDE) console.
+    assertEquals(2, mathUtilsObj.divide(8,4));
+  }
+}

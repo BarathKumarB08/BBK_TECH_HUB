@@ -1,0 +1,1161 @@
+===========
+SPRING CORE
+===========
+
+Dependency Injection (DI):
+==========================
+The Inversion of Control (IoC) is a general concept, and it can be expressed in many different ways. Dependency Injection is merely one concrete example of Inversion of Control.
+Dependency Injection helps in gluing these classes together and at the same time keeping them independent. Dependency injection can happen in the way of passing parameters to the constructor or by post-construction using setter methods.
+
+Aspect Oriented Programming (AOP):
+==================================
+The functions that span multiple points of an application are called cross-cutting concerns and these cross-cutting concerns are conceptually separate from the application's business logic. Eg: logging, declarative transactions, security, caching.
+In AOP the unit of modularity is the aspect. DI helps you decouple your application objects from each other, while AOP helps you decouple cross-cutting concerns from the objects that they affect.
+
+
+
+Spring Framework - Architecture:
+================================
+https://www.tutorialspoint.com/spring/images/spring_architecture.png
+
+
+Core Container:
+---------------
+The 'Core' module provides the fundamental parts of the framework, including the IoC and Dependency Injection features.
+The 'Bean' module provides BeanFactory, which is a sophisticated implementation of the factory pattern.
+The 'Context' module builds on the solid base provided by the Core and Beans modules and it is a medium to access any objects defined and configured. The ApplicationContext interface is the focal point of the Context module.
+The 'SpEL' module provides a powerful expression language for querying and manipulating an object graph at runtime.
+
+Data Access/Integration:
+------------------------
+The 'JDBC' module provides a JDBC-abstraction layer that removes the need for tedious JDBC related coding.
+The 'ORM' module provides integration layers for popular object-relational mapping APIs, including JPA, JDO, Hibernate, and iBatis.
+The 'OXM' module provides an abstraction layer that supports Object/XML mapping implementations for JAXB, Castor, XMLBeans, JiBX and XStream.
+The Java Messaging Service 'JMS' module contains features for producing and consuming messages.
+The 'Transaction' module supports programmatic and declarative transaction management for classes that implement special interfaces and for all your POJOs.
+
+Web:
+----
+The 'Web' module provides basic web-oriented integration features such as multipart file-upload functionality and the initialization of the IoC container using servlet listeners and a web-oriented application context.
+The 'Web-MVC' module contains Spring's Model-View-Controller (MVC) implementation for web applications.
+The 'Web-Socket' module provides support for WebSocket-based, two-way communication between the client and the server in web applications.
+The 'Web-Portlet' module provides the MVC implementation to be used in a portlet environment and mirrors the functionality of Web-Servlet module.
+
+Miscellaneous:
+--------------
+The 'AOP' module provides an aspect-oriented programming implementation allowing you to define method-interceptors and pointcuts to cleanly decouple code that implements functionality that should be separated.
+The 'Aspects' module provides integration with AspectJ, which is again a powerful and mature AOP framework.
+The 'Instrumentation' module provides class instrumentation support and class loader implementations to be used in certain application servers.
+The 'Messaging' module provides support for STOMP as the WebSocket sub-protocol to use in applications. It also supports an annotation programming model for routing and processing STOMP messages from WebSocket clients.
+The 'Test' module supports the testing of Spring components with JUnit or TestNG frameworks.
+
+
+
+Hello World Example:
+====================
+HelloWorld.java:
+----------------
+package com.tutorialspoint;
+public class HelloWorld {
+  private String message;
+  public void setMessage(String message){
+    this.message  = message;
+  }
+  public void getMessage(){
+    System.out.println("Your Message : " + message);
+  }
+}
+
+Beans.xml:
+----------
+<?xml version = "1.0" encoding = "UTF-8"?>
+<beans>
+  <bean id = "helloWorld" class = "com.tutorialspoint.HelloWorld">
+    <property name = "message" value = "Hello World!"/>
+  </bean>
+</beans>
+
+
+MainApp.java:
+-------------
+package com.tutorialspoint;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+public class MainApp {
+  public static void main(String[] args) {
+    ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+    HelloWorld obj = (HelloWorld) context.getBean("helloWorld");
+    obj.getMessage();
+  }
+}
+
+
+The first step is to create an application context where we used framework API ClassPathXmlApplicationContext(). This API loads beans configuration file and eventually based on the provided API, it takes care of creating and initializing all the objects, i.e. beans mentioned in the configuration file.
+
+The second step is used to get the required bean using getBean() method of the created context. This method uses bean ID to return a generic object, which finally can be casted to the actual object. Once you have an object, you can use this object to call any class method.
+
+When Spring application gets loaded into the memory, Framework makes use of the above configuration file to create all the beans defined and assigns them a unique ID as defined in <bean> tag. You can use <property> tag to pass the values of different variables used at the time of object creation.
+
+
+
+Spring - IoC Containers:
+========================
+Spring BeanFactory Container:
+-----------------------------
+This is the simplest container providing the basic support for DI and is defined by the org.springframework.beans.factory.BeanFactory interface. The BeanFactory and related interfaces, such as BeanFactoryAware, InitializingBean, DisposableBean, are still present in Spring for the purpose of backward compatibility with a large number of third-party frameworks that integrate with Spring.
+
+XmlBeanFactory factory = new XmlBeanFactory (new ClassPathResource("Beans.xml")); 
+HelloWorld obj = (HelloWorld) factory.getBean("helloWorld");
+
+Spring ApplicationContext Container:
+------------------------------------
+This container adds more enterprise-specific functionality such as the ability to resolve textual messages from a properties file and the ability to publish application events to interested event listeners. This container is defined by the org.springframework.context.ApplicationContext interface.
+
+	FileSystemXmlApplicationContext − This container loads the definitions of the beans from an XML file. Here you need to provide the full path of the XML bean configuration file to the constructor.
+
+	ClassPathXmlApplicationContext − This container loads the definitions of the beans from an XML file. Here you do not need to provide the full path of the XML file but you need to set CLASSPATH properly because this container will look like bean configuration XML file in CLASSPATH.
+
+	WebXmlApplicationContext − This container loads the XML file with definitions of all beans from within a web application.
+
+ApplicationContext context = new FileSystemXmlApplicationContext("C:/Users/ZARA/workspace/HelloSpring/src/Beans.xml");
+HelloWorld obj = (HelloWorld) context.getBean("helloWorld");
+
+
+
+
+Spring - Bean Definition:
+=========================
+The objects that form the backbone of your application and that are managed by the Spring IoC container are called beans. A bean is an object that is instantiated, assembled, and otherwise managed by a Spring IoC container. 
+
+Bean definition contains the information called configuration metadata, which is needed for the container to know the following −
+ - How to create a bean
+ - Bean's lifecycle details
+ - Bean's dependencies
+
+Bean properties:
+
+ - class
+ - name
+ - scope
+ - constructor-arg
+ - properties
+ - autowiring mode
+ - lazy-initialization mode
+ - initialization method
+ - destruction method
+
+
+
+Spring - Bean Scopes:
+=====================
+singleton - This scopes the bean definition to a single instance per Spring IoC container (default).
+prototype - New bean is created with every request (using getBean() method) or reference.
+request - New bean created per servlet request. Only valid in the context of a web-aware Spring ApplicationContext.
+session - New bean created per servlet session. Only valid in the context of a web-aware Spring ApplicationContext.
+global-session - New bean created per servlet global HTTP session (applicate in portlet context). Only valid in the context of a web-aware Spring ApplicationContext.
+
+singleton example:
+------------------
+ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+HelloWorld objA = (HelloWorld) context.getBean("helloWorld");
+objA.setMessage("I'm object A");
+objA.getMessage();
+HelloWorld objB = (HelloWorld) context.getBean("helloWorld");
+objB.getMessage();
+
+output:
+Your Message : I'm object A
+Your Message : I'm object A
+
+prototype example:
+------------------
+ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+HelloWorld objA = (HelloWorld) context.getBean("helloWorld");
+objA.setMessage("I'm object A");
+objA.getMessage();
+HelloWorld objB = (HelloWorld) context.getBean("helloWorld");
+objB.getMessage();
+
+output:
+Your Message : I'm object A
+Your Message : null
+
+
+
+Spring - Bean Life Cycle:
+=========================
+To define setup and teardown for a bean, we simply declare the <bean> with init-method and/or destroy-method parameters. The init-method attribute specifies a method that is to be called on the bean immediately upon instantiation. Similarly, destroy-method specifies a method that is called just before a bean is removed from the container.
+
+HelloWorld.java
+
+package com.tutorialspoint;
+public class HelloWorld {
+   private String message;
+   public void setMessage(String message){
+      this.message = message;
+   }
+   public void getMessage(){
+      System.out.println("Your Message : " + message);
+   }
+   public void init(){
+      System.out.println("Bean is going through init.");
+   }
+   public void destroy() {
+      System.out.println("Bean will destroy now.");
+   }
+}
+
+MainApp.java:
+package com.tutorialspoint;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+public class MainApp {
+   public static void main(String[] args) {
+      AbstractApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+      HelloWorld obj = (HelloWorld) context.getBean("helloWorld");
+      obj.getMessage();
+      context.registerShutdownHook(); // ensures a graceful shutdown and calls the relevant destroy methods on your singleton beans so that all resources are released.
+   }
+}
+
+<bean id = "helloWorld" class = "com.tutorialspoint.HelloWorld" init-method = "init" destroy-method = "destroy">
+	<property name = "message" value = "Hello World!"/>
+</bean>
+
+
+(Global) Default initialization and destroy methods:
+----------------------------------------------------
+<beans default-init-method = "init" default-destroy-method = "destroy">
+   <bean id = "..." class = "...">
+      <!-- collaborators and configuration for this bean go here -->
+   </bean>
+</beans>
+
+
+Using Java Intefaces and methods:
+---------------------------------
+INIT - By implementing InitializingBean and overriding afterPropertiesSet() method.
+DESTROY - By implementing DisposableBean and overriding destroy() method.
+
+
+BeanPostProcessor:
+==================
+Factory hook that allows for custom modification of new bean instances. We can define a seperate bean so that their methods run before and after initialization of all beans in Spring context.
+
+1. Define a bean in beans.xml file: <bean class="packageName.DisplayBeanNamePostProcessor"/>
+2. create a class that implements BeanPostProcessor and overrides methods.
+  class DisplayBeanNamePostProcessor implements BeanPostProcessor {
+    postProcessBeforeInitialization() {..}
+	postProcessAfterInitialization() {..}
+  }
+
+
+BeanFactoryPostProcessor:
+=========================
+Factory hook that allows for custom modification of an application context's bean definitions, adapting the bean property values of the context's underlying bean factory.
+This is associated to BeanFactory itself.
+
+1. Define a bean in beans.xml file: <bean class="packageName.ImplForBeanFactoryPostProcessor"/>
+2. create a class that implements BeanPostProcessor and overrides methods.
+  class ImplForBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+	postProcessBeanFactory() {..}
+  }
+
+
+Spring - Bean Definition Inheritance:
+=====================================
+When you use XML-based configuration metadata, you indicate a child bean definition by using the parent attribute, specifying the parent bean as the value of this attribute.
+
+
+Example:
+--------
+
+HelloWorld.java:
+----------------
+public class HelloWorld {
+   private String message1;
+   private String message2;
+
+   public void setMessage1(String message){
+      this.message1 = message;
+   }
+   public void setMessage2(String message){
+      this.message2 = message;
+   }
+   public void getMessage1(){
+      System.out.println("World Message1 : " + message1);
+   }
+   public void getMessage2(){
+      System.out.println("World Message2 : " + message2);
+   }
+}
+HelloIndia.java:
+----------------
+public class HelloIndia {
+   private String message1;
+   private String message2;
+   private String message3;
+
+   public void setMessage1(String message){
+      this.message1 = message;
+   }
+   public void setMessage2(String message){
+      this.message2 = message;
+   }
+   public void setMessage3(String message){
+      this.message3 = message;
+   }
+   public void getMessage1(){
+      System.out.println("India Message1 : " + message1);
+   }
+   public void getMessage2(){
+      System.out.println("India Message2 : " + message2);
+   }
+   public void getMessage3(){
+      System.out.println("India Message3 : " + message3);
+   }
+}
+
+
+MainApp.java:
+-------------
+public class MainApp {
+   public static void main(String[] args) {
+      ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+      
+      HelloWorld objA = (HelloWorld) context.getBean("helloWorld");
+      objA.getMessage1();
+      objA.getMessage2();
+
+      HelloIndia objB = (HelloIndia) context.getBean("helloIndia");
+      objB.getMessage1();
+      objB.getMessage2();
+      objB.getMessage3();
+   }
+}
+
+beans.xml:
+----------
+<?xml version = "1.0" encoding = "UTF-8"?>
+<beans>
+   <bean id = "helloWorld" class = "com.tutorialspoint.HelloWorld">
+      <property name = "message1" value = "Hello World!"/>
+      <property name = "message2" value = "Hello Second World!"/>
+   </bean>
+   <bean id =" helloIndia" class = "com.tutorialspoint.HelloIndia" parent = "helloWorld">
+      <property name = "message1" value = "Hello India!"/>
+      <property name = "message3" value = "Vanakkam India!"/>
+   </bean>
+</beans>
+
+
+Output:
+-------
+Hello World!
+Hello Second World!
+Hello India!
+Hello Second World!
+Vanakkam India!
+
+
+Bean Definition Template:
+=========================
+While defining a Bean Definition Template, you should not specify the class attribute and should specify the abstract attribute with a value of true.
+The parent bean cannot be instantiated on its own because it is incomplete, and it is also explicitly marked as abstract. When a definition is abstract like this, it is usable only as a pure template bean definition that serves as a parent definition for child definitions.
+
+<bean id = "beanTeamplate" abstract = "true">
+  <property name = "message1" value = "Hello World!"/>
+  <property name = "message2" value = "Hello Second World!"/>
+  <property name = "message3" value = "Vanakkam India!"/>
+</bean>
+
+<bean id = "helloIndia" class = "com.tutorialspoint.HelloIndia" parent = "beanTeamplate">
+  <property name = "message1" value = "Hello India!"/>
+  <property name = "message3" value = "Vanakkam India!"/>
+</bean>
+
+
+
+Spring - Dependency Injection:
+==============================
+Constructor-based dependency injection:
+---------------------------------------
+Constructor-based DI is accomplished when the container invokes a class constructor with a number of arguments, each representing a dependency on the other class.
+
+Example:
+
+public class TextEditor {
+   private SpellChecker spellChecker;
+
+   public TextEditor(SpellChecker spellChecker) {
+      System.out.println("Inside TextEditor constructor." );
+      this.spellChecker = spellChecker;
+   }
+   public void spellCheck() {
+      spellChecker.checkSpelling();
+   }
+}
+
+public class SpellChecker {
+   public SpellChecker(){
+      System.out.println("Inside SpellChecker constructor." );
+   }
+   public void checkSpelling() {
+      System.out.println("Inside checkSpelling." );
+   }
+}
+
+<bean id = "textEditor" class = "com.tutorialspoint.TextEditor">
+  <constructor-arg ref = "spellChecker"/>
+</bean>
+
+<!-- Definition for spellChecker bean -->
+<bean id = "spellChecker" class = "com.tutorialspoint.SpellChecker"></bean>
+
+Constructor arguments resolution:
+
+For multiple references:
+<beans>
+   <bean id = "foo" class = "x.y.Foo">
+      <constructor-arg ref = "bar"/>
+      <constructor-arg ref = "baz"/>
+   </bean>
+   <bean id = "bar" class = "x.y.Bar"/>
+   <bean id = "baz" class = "x.y.Baz"/>
+</beans>
+
+<beans>
+   <bean id = "exampleBean" class = "examples.ExampleBean">
+      <constructor-arg type = "int" value = "2001"/>
+      <constructor-arg type = "java.lang.String" value = "Zara"/>
+   </bean>
+</beans>
+
+<beans>
+   <bean id = "exampleBean" class = "examples.ExampleBean">
+      <constructor-arg index = "0" value = "2001"/>
+      <constructor-arg index = "1" value = "Zara"/>
+   </bean>
+</beans>
+
+A final note, in case you are passing a reference to an object, you need to use ref attribute of <constructor-arg> tag and if you are passing a value directly then you should use value attribute as shown above.
+
+
+Setter-based dependency injection:
+----------------------------------
+Setter-based DI is accomplished by the container calling setter methods on your beans after invoking a no-argument constructor or no-argument static factory method to instantiate your bean.
+
+Example:
+
+public class TextEditor {
+   private SpellChecker spellChecker;
+
+   // a setter method to inject the dependency.
+   public void setSpellChecker(SpellChecker spellChecker) {
+      System.out.println("Inside setSpellChecker." );
+      this.spellChecker = spellChecker;
+   }
+   // a getter method to return spellChecker
+   public SpellChecker getSpellChecker() {
+      return spellChecker;
+   }
+   public void spellCheck() {
+      spellChecker.checkSpelling();
+   }
+}
+
+<bean id = "textEditor" class = "com.tutorialspoint.TextEditor">
+  <property name = "spellChecker" ref = "spellChecker"/>
+</bean>
+
+<!-- Definition for spellChecker bean -->
+<bean id = "spellChecker" class = "com.tutorialspoint.SpellChecker"></bean>
+
+
+
+Constructor vs Setter based injection:
+======================================
+Partial Injection:
+------------------
+- In Setter based injection, partial injection in possible.
+- Suppose, we have 3 dependencies for the bean, we are allowed to skip passing values to one or two properties.
+- In that case, default values will be set.
+- This is not possible in Constructor based injection.
+
+Overriding:
+-----------
+- Setter based injection overrides the constructor based injection.
+- If we use both constructor based and setter based injection, IOC container will use the setter based injection.
+
+Changes:
+--------
+- We can easily change the value by setter injection.
+- It doesn't create a new bean instance always like constructor.
+- So setter injection is flexible than constructor injection.
+
+
+
+Spring - Injecting Inner Beans:
+===============================
+Inner beans are beans that are defined within the scope of another bean. Thus, a <bean/> element inside the <property/> or <constructor-arg/> elements is called inner bean.
+
+Example:
+
+//Java source same as property based DI.
+
+<!-- Definition for textEditor bean using inner bean -->
+<bean id = "textEditor" class = "com.tutorialspoint.TextEditor">
+  <property name = "spellChecker">
+	 <bean id = "spellChecker" class = "com.tutorialspoint.SpellChecker"/>
+  </property>
+</bean>
+
+
+
+Spring - Injecting Collection:
+==============================
+JavaCollection.java:
+--------------------
+public class JavaCollection {
+   List addressList;
+   Set  addressSet;
+   Map  addressMap;
+   Properties addressProp;
+
+   // a setter method to set List
+   public void setAddressList(List addressList) {
+      this.addressList = addressList;
+   }
+   
+   // prints and returns all the elements of the list.
+   public List getAddressList() {
+      System.out.println("List Elements :"  + addressList);
+      return addressList;
+   }
+   
+   // a setter method to set Set
+   public void setAddressSet(Set addressSet) {
+      this.addressSet = addressSet;
+   }
+   
+   // prints and returns all the elements of the Set.
+   public Set getAddressSet() {
+      System.out.println("Set Elements :"  + addressSet);
+      return addressSet;
+   }
+   
+   // a setter method to set Map
+   public void setAddressMap(Map addressMap) {
+      this.addressMap = addressMap;
+   }
+   
+   // prints and returns all the elements of the Map.
+   public Map getAddressMap() {
+      System.out.println("Map Elements :"  + addressMap);
+      return addressMap;
+   }
+   
+   // a setter method to set Property
+   public void setAddressProp(Properties addressProp) {
+      this.addressProp = addressProp;
+   }
+   
+   // prints and returns all the elements of the Property.
+   public Properties getAddressProp() {
+      System.out.println("Property Elements :"  + addressProp);
+      return addressProp;
+   }
+}
+
+MainApp.java:
+
+public class MainApp {
+   public static void main(String[] args) {
+      ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+      JavaCollection jc=(JavaCollection)context.getBean("javaCollection");
+
+      jc.getAddressList();
+      jc.getAddressSet();
+      jc.getAddressMap();
+      jc.getAddressProp();
+   }
+}
+
+<beans>
+   <!-- Definition for javaCollection -->
+   <bean id = "javaCollection" class = "com.tutorialspoint.JavaCollection">
+      
+      <!-- results in a setAddressList(java.util.List) call -->
+      <property name = "addressList">
+         <list>
+            <value>INDIA</value>
+            <value>Pakistan</value>
+         </list>
+      </property>
+
+      <!-- results in a setAddressSet(java.util.Set) call -->
+      <property name = "addressSet">
+         <set>
+            <value>INDIA</value>
+            <value>Pakistan</value>
+         </set>
+      </property>
+
+      <!-- results in a setAddressMap(java.util.Map) call -->
+      <property name = "addressMap">
+         <map>
+            <entry key = "1" value = "INDIA"/>
+            <entry key = "2" value = "Pakistan"/>
+         </map>
+      </property>
+      
+      <!-- results in a setAddressProp(java.util.Properties) call -->
+      <property name = "addressProp">
+         <props>
+            <prop key = "one">INDIA</prop>
+            <prop key = "two">Pakistan</prop>
+         </props>
+      </property>
+   </bean>
+
+</beans>
+
+Injecting Bean References:
+
+<property name = "addressList">
+ <list>
+	<ref bean = "address1"/>
+	<value>Pakistan</value>
+ </list>
+</property>
+
+<!-- Passing bean reference  for java.util.Set -->
+<property name = "addressSet">
+ <set>
+	<ref bean = "address1"/>
+	<value>Pakistan</value>
+ </set>
+</property>
+
+<!-- Passing bean reference  for java.util.Map -->
+<property name = "addressMap">
+ <map>
+	<entry key = "one" value = "INDIA"/>
+	<entry key = "three" value-ref = "address2"/>
+ </map>
+</property>
+
+Injecting null and empty string values:
+<property name = "email" value = ""/>
+<property name = "email"><null/></property>
+
+
+
+Spring - Beans Auto-Wiring:
+===========================
+The Spring container can autowire relationships between collaborating beans without using <constructor-arg> and <property> elements
+Following are the autowiring modes
+byName:
+  - bean id and reference name must be same. injects the object dependency according to name of the bean. 
+  - In such case, property name and bean name must be same.
+byType:
+  - injects the object dependency according to type. 
+  - So property name and bean name can be different. But there must be only one bean of a type.
+constructor:
+  - injects the dependency by calling the constructor of the class. 
+  - spring container injects the dependency by highest parameterized constructor.
+autodetect:
+  - deprecated
+no:
+  - In this case, spring container doesn't inject the dependency by autowiring
+
+
+Limitations with autowiring:
+----------------------------
+1. Overriding possibility - You can still specify dependencies using <constructor-arg> and <property> settings which will always override autowiring.
+2. Primitive data types - You cannot autowire so-called simple properties such as primitives, Strings, and Classes.
+3. Confusing nature - Autowiring is less exact than explicit wiring, so if possible prefer using explict wiring.
+
+
+Autowiring 'byName':
+--------------------
+This mode specifies autowiring by property name. Spring container looks at the beans on which auto-wire attribute is set to byName in the XML configuration file. It then tries to match and wire its properties with the beans defined by the same names in the configuration file. If matches are found, it will inject those beans. Otherwise, bean(s) will not be wired.
+
+Example:
+
+public class TextEditor {
+   private SpellChecker spellChecker;
+   private String name;
+   
+   public void setSpellChecker( SpellChecker spellChecker ){
+      this.spellChecker = spellChecker;
+   }
+   public SpellChecker getSpellChecker() {
+      return spellChecker;
+   }
+   public void setName(String name) {
+      this.name = name;
+   }
+   public String getName() {
+      return name;
+   }
+   public void spellCheck() {
+      spellChecker.checkSpelling();
+   }
+}
+
+public class SpellChecker {
+   public SpellChecker() {
+      System.out.println("Inside SpellChecker constructor." );
+   }
+   public void checkSpelling() {
+      System.out.println("Inside checkSpelling." );
+   }
+}
+
+public class MainApp {
+   public static void main(String[] args) {
+      ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+      TextEditor te = (TextEditor) context.getBean("textEditor");
+      te.spellCheck();
+   }
+}
+
+
+<?xml version = "1.0" encoding = "UTF-8"?>
+<beans ..>
+   <!-- Definition for textEditor bean -->
+   <bean id = "textEditor" class = "com.tutorialspoint.TextEditor" autowire = "byName">
+   <!-- <property name = "spellChecker" ref = "spellChecker" /> --> // commented. this is normal scenario
+      <property name = "name" value = "Generic Text Editor" />
+   </bean>
+
+   <!-- Definition for spellChecker bean -->
+   <bean id = "spellChecker" class = "com.tutorialspoint.SpellChecker"></bean>
+</beans>
+
+
+Autowiring 'byType':
+--------------------
+<beans ..>
+   <bean id = "textEditor" class = "com.tutorialspoint.TextEditor" autowire = "byType"> <!-- autowiring enable byType -->
+      <property name = "name" value = "Generic Text Editor" />
+   </bean>
+   <!-- Definition for spellChecker bean -->
+   <bean id = "SpellChecker" class = "com.tutorialspoint.SpellChecker"></bean>
+</beans>
+
+Autowiring 'constructor':
+-------------------------
+Similar to byType, but type applies to constructor arguments. If there is not exactly one bean of the constructor argument type in the container, a fatal error is raised.
+This mode is very similar to byType, but it applies to constructor arguments. Spring container looks at the beans on which autowire attribute is set constructor in the XML configuration file. It then tries to match and wire its constructor's argument with exactly one of the beans name in the configuration file. If matches are found, it will inject those beans. Otherwise, bean(s) will not be wired.
+
+<!-- Definition for textEditor bean autowire by constructor -->
+<bean id = "textEditor" class = "com.tutorialspoint.TextEditor" 
+  autowire = "constructor">
+  <constructor-arg value = "Generic Text Editor"/>
+</bean>
+
+
+Autowiring 'autodetect':
+------------------------
+Spring first tries to wire using autowire by constructor, if it does not work, Spring tries to autowire by byType.
+
+
+
+Spring - Annotation Based Configuration:
+========================================
+Starting from Spring 2.5 it became possible to configure the dependency injection using annotations. So instead of using XML to describe a bean wiring, you can move the bean configuration into the component class itself by using annotations on the relevant class, method, or field declaration.
+
+Annotation injection is performed before XML injection. Thus, the latter configuration will override the former for properties wired through both approaches.
+
+Annotation wiring is not turned on in the Spring container by default. So, we will need to enable it in our Spring configuration file.
+
+<beans>
+   <context:annotation-config/>
+   <!-- bean definitions go here -->
+</beans>
+
+
+@Required:
+----------
+The @Required annotation applies to bean property setter methods and it indicates that the affected bean property MUST be populated in XML configuration file at configuration time. Otherwise, the container throws a BeanInitializationException exception.
+
+Example:
+
+public class Student {
+   private Integer age;
+   private String name;
+
+   @Required
+   public void setAge(Integer age) {
+      this.age = age;
+   }
+   public Integer getAge() {
+      return age;
+   }
+   
+   @Required
+   public void setName(String name) {
+      this.name = name;
+   }
+   public String getName() {
+      return name;
+   }
+}
+
+<beans>
+   <context:annotation-config/>
+   <!-- Definition for student bean -->
+   <bean id = "student" class = "com.tutorialspoint.Student">
+      <property name = "name" value = "Zara" />
+      <!-- property name = "age"  value = "11"--> <!-- try without passing age and check the result -->
+   </bean>
+</beans>
+
+This will raise BeanInitializationException exception and print the following error along with other log messages −
+	Property 'age' is required for bean 'student'
+
+
+@Autowired:
+-----------
+The @Autowired annotation can be used to autowire bean on the setter method (just like @Required annotation), constructor, a property or methods with arbitrary names and/or multiple arguments.
+
+@Autowired on Setter Methods:
+-----------------------------
+You can use @Autowired annotation on setter methods to get rid of the <property> element in XML configuration file. 
+When Spring finds an @Autowired annotation used with setter methods, it tries to perform byType autowiring on the method.
+
+public class TextEditor {
+   private SpellChecker spellChecker;
+
+   @Autowired
+   public void setSpellChecker( SpellChecker spellChecker ){
+      this.spellChecker = spellChecker;
+   }
+   public SpellChecker getSpellChecker( ) {
+      return spellChecker;
+   }
+   public void spellCheck() {
+      spellChecker.checkSpelling();
+   }
+}
+
+<beans>
+   <context:annotation-config/>
+   <!-- Definition for textEditor bean without constructor-arg  -->
+   <bean id = "textEditor" class = "com.tutorialspoint.TextEditor"></bean>
+   <!-- Definition for spellChecker bean -->
+   <bean id = "spellChecker" class = "com.tutorialspoint.SpellChecker"></bean>
+</beans>
+
+@Autowired on Properties:
+-------------------------
+You can use @Autowired annotation on properties to get rid of the setter methods. When you pass the values of autowired properties using <property>, Spring will automatically assign those properties with the passed values or references.
+
+@Autowired on Constructors:
+---------------------------
+You can apply @Autowired to constructors as well. A constructor @Autowired annotation indicates that the constructor should be autowired when creating the bean, even if no <constructor-arg> elements are used while configuring the bean in XML file.
+
+@Autowired with (required=false) option:
+----------------------------------------
+By default, the @Autowired annotation implies the dependency is required similar to @Required annotation, however, you can turn off the default behavior by using the (required=false) option with @Autowired.
+The following example will work even if you do not pass any value for age property but still it will demand for the name property.
+
+
+@Qualifier:
+-----------
+When using autowired annotation, spring first tries to load the bean that matches the Type. 
+If there are more than one bean with same type as specified, it tries to match with the Name. 
+The other way is by using @Qualifier annotation.
+
+<bean id = "spellChecker" class = "com.tutorialspoint.SpellChecker">
+  <qualifier value = "q1"/>
+</bean>
+
+@Autowired
+@Qualifier("q1")
+public void setSpellChecker( SpellChecker spellChecker ){..}
+
+
+@Resource:
+----------
+It is part of the JSR-250 annotation collection.
+This configuration will resolve dependencies using the match-by-name execution path.
+This annotation has the following execution paths, listed by precedence:
+ 1. Match by Name
+ 2. Match by Type
+ 3. Match by Qualifier
+
+
+@Inject:
+--------
+It is part of the JSR-330 annotation collection.
+This annotation has the following execution paths, listed by precedence:
+1. Match by Type
+2. Match by Qualifier
+3. Match by Name
+
+
+@PostConstruct:
+---------------
+The @PostConstruct annotation is used on a method that needs to be executed after dependency injection is done to perform any initialization.
+
+
+@PreDestroy:
+------------
+The @PreDestroy annotation is used on methods as a callback notification to signal that the instance is in the process of being removed by the container.
+
+
+@Component:
+-----------
+The annotation that allows Spring to detect our custom beans automatically. It is a class-level annotation.
+Spring will:
+ - Scan our application for classes annotated with @Component
+ - Instantiate them and inject any specified dependencies into them
+ - Inject them wherever needed
+
+Spring has provided a few specialized stereotype annotations. They all provide the same function as @Component.
+ - @Controller
+ - @Service
+ - @Repository
+
+
+@ComponentScan:
+---------------
+It is used to enable component scanning of components you write like @Controller classes etc.
+
+
+@Bean:
+------
+Spring @Bean Annotation is applied on a method to specify that it returns a bean to be managed by Spring context. 
+Spring Bean annotation is usually declared in Configuration classes methods.
+
+
+@ComponentScan vs @EnableAutoConfiguration vs @SpringBootApplication:
+---------------------------------------------------------------------
+The @SpringBootApplication is a combination of three annotations 
+ - @Configuration (used for Java-based configuration), 
+ - @ComponentScan (used for component scanning), and 
+ - @EnableAutoConfiguration (used to enable auto-configuration in Spring Boot)
+
+If you are using @EnableAutoConfiguration, then you can selectively exclude certain classes from auto-configuration by using exclude atribute as shown below:
+@EnableAutoConfiguration(exclude=DataSourceAutoConfiguration.class)
+
+
+@ResponseBody:
+--------------
+Tells controller that the object returned is automatically serialized into JSON and passed back into HttpResponse object. 
+When used on a method, Spring converts the return value and writes it to the HTTP response automatically.
+
+
+@RestController:
+----------------
+Spring RestController annotation is a convenience annotation that is combination of @Controller and @ResponseBody. 
+This annotation is applied to a class to mark it as a request handler.
+
+
+@Value:
+-------
+This annotation is used to assign default values to variables and method arguments. 
+We can read spring environment variables as well as system variables using @Value annotation.
+
+
+@PropertySource:
+----------------
+Spring @PropertySource annotation is used to provide properties file to Spring Environment. 
+This annotation is used with @Configuration classes.
+
+
+@Async:
+-------
+When a method annotated with @Async annotation, Spring will execute it in a separate thread and the caller of the method will not wait till the method is completed execution.
+
+
+Spring - Java Based Configuration:
+==================================
+
+Event Handling in Spring:
+=========================
+
+
+
+AOP with Spring Framework:
+==========================
+One of the key components of Spring Framework is the Aspect oriented programming (AOP) framework. Aspect-Oriented Programming entails breaking down program logic into distinct parts called concerns. The functions that span multiple points of an application are called cross-cutting concerns and these cross-cutting concerns are conceptually separate from the application's business logic. There are various common good examples of aspects like logging, auditing, declarative transactions, security, caching, etc.
+
+The key unit of modularity in OOP is the class, whereas in AOP the unit of modularity is the aspect. Dependency Injection helps you decouple your application objects from each other and AOP helps you decouple cross-cutting concerns from the objects that they affect.
+
+AOP Terminologies:
+
+1. Aspect:
+----------
+This is a module which has a set of APIs providing cross-cutting requirements. 
+For example, a logging module would be called AOP aspect for logging. 
+An application can have any number of aspects depending on the requirement.
+
+2. Join point:
+--------------
+This represents a point in your application where you can plug-in the AOP aspect.
+You can also say, it is the actual place in the application where an action will be taken using Spring AOP framework.
+
+3. Advice:
+----------
+This is the actual action to be taken either before or after the method execution.
+This is an actual piece of code that is invoked during the program execution by Spring AOP framework.
+
+4. Pointcut:
+------------
+This is a set of one or more join points where an advice should be executed. 
+You can specify pointcuts using expressions or patterns as we will see in our AOP examples.
+
+5. Introduction:
+----------------
+An introduction allows you to add new methods or attributes to the existing classes.
+
+6. Target object:
+-----------------
+The object being advised by one or more aspects. 
+This object will always be a proxied object, also referred to as the advised object.
+
+7. Weaving:
+-----------
+Weaving is the process of linking aspects with other application types or objects to create an advised object.
+This can be done at compile time, load time, or at runtime.
+
+
+Types of Advice:
+----------------
+1. before: Run advice before the a method execution.
+2. after: Run advice after the method execution, regardless of its outcome.
+3. after-returning: Run advice after the a method execution only if method completes successfully.
+4. after-throwing: Run advice after the a method execution only if method exits by throwing an exception.
+5. around: Run advice before and after the advised method is invoked.
+
+Template:
+
+<aop:config>
+   <aop:aspect id = "myAspect" ref = "aBean">
+      <aop:pointcut id = "businessService"
+         expression = "execution(* com.xyz.myapp.service.*.*(..))"/>
+
+      <!-- a before advice definition -->
+      <aop:before pointcut-ref = "businessService" method = "doRequiredTask"/>
+
+      <!-- an after advice definition -->
+      <aop:after pointcut-ref = "businessService" method = "doRequiredTask"/>
+
+      <!-- an after-returning advice definition -->
+      <!--The doRequiredTask method must have parameter named retVal -->
+      <aop:after-returning pointcut-ref = "businessService"
+         returning = "retVal" method = "doRequiredTask"/>
+
+      <!-- an after-throwing advice definition -->
+      <!--The doRequiredTask method must have parameter named ex -->
+      <aop:after-throwing pointcut-ref = "businessService"
+         throwing = "ex" method = "doRequiredTask"/>
+
+      <!-- an around advice definition -->
+      <aop:around pointcut-ref = "businessService" method = "doRequiredTask"/>
+      ...
+   </aop:aspect>
+</aop:config>
+
+<bean id = "aBean" class = "...">
+  ...
+</bean>
+
+
+Example:
+
+public class Logging {
+   /* This is the method which I would like to execute before a selected method execution */
+   public void beforeAdvice(){
+      System.out.println("Going to setup student profile.");
+   }
+   
+   /* This is the method which I would like to execute after a selected method execution */
+   public void afterAdvice(){
+      System.out.println("Student profile has been setup.");
+   }
+
+   /* This is the method which I would like to execute when any method returns */
+   public void afterReturningAdvice(Object retVal) {
+      System.out.println("Returning:" + retVal.toString() );
+   }
+
+   /* This is the method which I would like to execute if there is an exception raised */
+   public void AfterThrowingAdvice(IllegalArgumentException ex){
+      System.out.println("There has been an exception: " + ex.toString());   
+   }
+}
+
+public class Student {
+   private Integer age;
+   private String name;
+
+   public void setAge(Integer age) {
+      this.age = age;
+   }
+   public Integer getAge() {
+	  System.out.println("Age : " + age );
+      return age;
+   }
+   public void setName(String name) {
+      this.name = name;
+   }
+   public String getName() {
+      System.out.println("Name : " + name );
+      return name;
+   }
+   public void printThrowException(){
+	   System.out.println("Exception raised");
+      throw new IllegalArgumentException();
+   }
+}
+
+public class MainApp {
+   public static void main(String[] args) {
+      ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
+      
+      Student student = (Student) context.getBean("student");
+      student.getName();
+      student.getAge();
+      student.printThrowException();
+   }
+}
+
+<beans>
+
+   <aop:config>
+      <aop:aspect id = "log" ref = "logging">
+         <aop:pointcut id = "selectAll" 
+            expression = "execution(* com.tutorialspoint.*.*(..))"/>
+         
+         <aop:before pointcut-ref = "selectAll" method = "beforeAdvice"/>
+         <aop:after pointcut-ref = "selectAll" method = "afterAdvice"/>
+         <aop:after-returning pointcut-ref = "selectAll" 
+            returning = "retVal" method = "afterReturningAdvice"/>
+         
+         <aop:after-throwing pointcut-ref = "selectAll" 
+            throwing = "ex" method = "AfterThrowingAdvice"/>
+      </aop:aspect>
+   </aop:config>
+
+   <!-- Definition for student bean -->
+   <bean id = "student" class = "com.tutorialspoint.Student">
+      <property name = "name" value = "Zara" />
+      <property name = "age" value = "11"/>      
+   </bean>
+
+   <!-- Definition for logging aspect -->
+   <bean id = "logging" class = "com.tutorialspoint.Logging"/> 
+      
+</beans>
+
+
+The above defined <aop:pointcut> selects all the methods defined under the package com.tutorialspoint. Let us suppose, you want to execute your advice before or after a particular method, you can define your pointcut to narrow down your execution by replacing stars (*) in pointcut definition with the actual class and method names.
+
+<aop:pointcut id = "selectAll" 
+	expression = "execution(* com.tutorialspoint.Student.getName(..))"/>
+
