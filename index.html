@@ -15,130 +15,92 @@
     />
 
     <style>
-      body {
-        background-color: #4e5a6a;
-        color: white;
-      }
-      h4 {
-        border-bottom: 1px solid #6ebe5c;
-        padding-bottom: 0.3rem;
-        margin-bottom: 1rem;
-      }
-      .highlight {
-        color: #98e070;
-        font-weight: bold;
-      }
-      a {
-        color: #fff;
-        text-decoration: none;
-      }
-      a:hover {
-        color: #b7f397;
-        text-decoration: underline;
-      }
-      .topic {
-        margin: 0.3rem 0;
-      }
+		h4 {
+			border-bottom: 1px solid #6ebe5c;
+			padding-bottom: 0.3rem;
+			margin-bottom: 1rem;
+		}
+		.highlight {
+			color: #98e070;
+			font-weight: bold;
+		}
+		a {
+			color: #fff;
+			text-decoration: none;
+		}
+		a:hover {
+			color: #b7f397;
+			text-decoration: underline;
+		}
+		.topic {
+		margin: 0.3rem 0;
+		}
 
-      .search-wrapper {
-        position: relative;
-        max-width: 300px;
-        margin-bottom: 2rem;
-      }
+		.search-wrapper {
+			position: relative;
+			max-width: 300px;
+			margin-bottom: 2rem;
+		}
 
-      #searchInput {
-        padding-left: 2rem;
-        height: 36px;
-        font-size: 0.9rem;
-        border-radius: 20px;
-      }
+		#searchInput {
+			padding-left: 2rem;
+			height: 36px;
+			font-size: 0.9rem;
+			border-radius: 20px;
+		}
 
-      .search-icon {
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: #333;
-      }
+		.search-icon {
+			position: absolute;
+			left: 10px;
+			top: 50%;
+			transform: translateY(-50%);
+			cursor: pointer;
+			color: #333;
+		}
 
-      .material-symbols-outlined {
-        font-size: 20px;
-        color: #1f1f1f;
-        user-select: none;
-      }
+		.material-symbols-outlined {
+			font-size: 20px;
+			color: #1f1f1f;
+			user-select: none;
+		}
 
-      /*
-    .d-none {
-      display: none !important;
-    }
-	
-	.light-mode {
-      background-color: #f4f4f4 !important;
-      color: #1f1f1f !important;
-    }
-    
-    .light-mode .highlight {
-      color: #2e7d32;
-    }
-    
-    .light-mode .topic a,
-    .light-mode a {
-      color: #1f1f1f;
-    }
-    
-    .light-mode .search-wrapper input {
-      background-color: #fff;
-      color: #000;
-    }
-    
-    .light-mode .material-symbols-outlined {
-      color: #000;
-    }
-    
-    .light-mode .btn-outline-light {
-      border-color: #000;
-      color: #000;
-    }
-	*/
+		body {
+			background-color: #4e5a6a;
+			color: white;
+			position: relative;
+		}
 
-      body {
-        background-color: #4e5a6a;
-        color: white;
-        position: relative;
-      }
+		.light-mode {
+			background-color: #f4f4f4 !important;
+			color: #1f1f1f !important;
+		}
 
-      .light-mode {
-        background-color: #f4f4f4 !important;
-        color: #1f1f1f !important;
-      }
+		.light-mode .highlight {
+			color: #2e7d32;
+		}
 
-      .light-mode .highlight {
-        color: #2e7d32;
-      }
+		.light-mode .topic a,
+		.light-mode a {
+			color: #1f1f1f;
+		}
 
-      .light-mode .topic a,
-      .light-mode a {
-        color: #1f1f1f;
-      }
+		.light-mode .search-wrapper input {
+			background-color: #fff;
+			color: #000;
+		}
 
-      .light-mode .search-wrapper input {
-        background-color: #fff;
-        color: #000;
-      }
+		.light-mode .material-symbols-outlined {
+			color: #000;
+		}
 
-      .light-mode .material-symbols-outlined {
-        color: #000;
-      }
+		.light-mode .btn-outline-light {
+			border-color: #000;
+			color: #000;
+		}
 
-      .light-mode .btn-outline-light {
-        border-color: #000;
-        color: #000;
-      }
-
-      #themeToggleIcon {
-        z-index: 999;
-      }
+		#themeToggleIcon {
+			z-index: 999;
+		}
     </style>
   </head>
   <body>
@@ -198,13 +160,9 @@
             <a href="viewer.html?file=DB_LAYER/JDBC.txt" target="_blank">JDBC</a>
           </div>
           <div class="topic">Jackson Series</div>
-          <div class="topic">JPA & Hibernate Series</div>
-          <div class="topic">Http Client Series</div>
           <div class="topic">Apache Commons Series</div>
           <div class="topic">Mockito Series</div>
           <div class="topic">Maven Series</div>
-          <div class="topic">Guava Series</div>
-          <div class="topic">Gradle Series</div>
         </div>
 
         <!-- Baeldung Pro -->
@@ -228,80 +186,80 @@
     </div>
 
     <script>
-      const searchInput = document.getElementById("searchInput");
-      const iconSearch = document.getElementById("iconSearch");
-      const iconClear = document.getElementById("iconClear");
+	const searchInput = document.getElementById("searchInput");
+	const iconSearch = document.getElementById("iconSearch");
+	const iconClear = document.getElementById("iconClear");
 
-      function filterTopics() {
-        const search = searchInput.value.toLowerCase().trim();
-        const categories = document.querySelectorAll("[data-category]");
+	function filterTopics() {
+		const search = searchInput.value.toLowerCase().trim();
+		const categories = document.querySelectorAll("[data-category]");
 
-        categories.forEach((category) => {
-          const topics = category.querySelectorAll(".topic");
-          let anyVisible = false;
+		categories.forEach((category) => {
+			const topics = category.querySelectorAll(".topic");
+			let anyVisible = false;
 
-          topics.forEach((topic) => {
-            const text = topic.textContent.toLowerCase();
-            if (text.includes(search)) {
-              topic.style.display = "block";
-              anyVisible = true;
-            } else {
-              topic.style.display = "none";
-            }
-          });
+			topics.forEach((topic) => {
+				const text = topic.textContent.toLowerCase();
+				if (text.includes(search)) {
+					topic.style.display = "block";
+					anyVisible = true;
+				} else {
+					topic.style.display = "none";
+				}
+			});
 
-          category.style.display = anyVisible ? "block" : "none";
-        });
+			category.style.display = anyVisible ? "block" : "none";
+		});
 
-        toggleIcons(search.length > 0);
-      }
+		toggleIcons(search.length > 0);
+	}
 
-      function toggleIcons(showClear) {
-        if (showClear) {
-          iconSearch.classList.add("d-none");
-          iconClear.classList.remove("d-none");
-        } else {
-          iconSearch.classList.remove("d-none");
-          iconClear.classList.add("d-none");
-        }
-      }
+	function toggleIcons(showClear) {
+		if (showClear) {
+			iconSearch.classList.add("d-none");
+			iconClear.classList.remove("d-none");
+		} else {
+			iconSearch.classList.remove("d-none");
+			iconClear.classList.add("d-none");
+		}
+	}
 
-      function clearSearch() {
-        searchInput.value = "";
-        filterTopics();
-        searchInput.focus();
-      }
+	function clearSearch() {
+		searchInput.value = "";
+		filterTopics();
+		searchInput.focus();
+	}
 
-      // Handle Esc key to clear input
-      searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          clearSearch();
-        }
-      });
+	// Handle Esc key to clear input
+	searchInput.addEventListener("keydown", (e) => {
+		if (e.key === "Escape") {
+			clearSearch();
+		}
+	});
 
-      const themeToggleIcon = document.getElementById("themeToggleIcon");
+	const themeToggleIcon = document.getElementById("themeToggleIcon");
 
-      function setTheme(isLight) {
-        const body = document.body;
-        if (isLight) {
-          body.classList.add("light-mode");
-          localStorage.setItem("theme", "light");
-        } else {
-          body.classList.remove("light-mode");
-          localStorage.setItem("theme", "dark");
-        }
-      }
+	function setTheme(isLight) {
+		const body = document.body;
+		if (isLight) {
+			body.classList.add("light-mode");
+			localStorage.setItem("theme", "light");
+		} else {
+			body.classList.remove("light-mode");
+			localStorage.setItem("theme", "dark");
+		}
+	}
 
-      themeToggleIcon.addEventListener("click", () => {
-        const isLight = !document.body.classList.contains("light-mode");
-        setTheme(isLight);
-      });
+	themeToggleIcon.addEventListener("click", () => {
+		const isLight = !document.body.classList.contains("light-mode");
+		setTheme(isLight);
+	});
 
-      // Load preference on page load
-      window.addEventListener("DOMContentLoaded", () => {
-        const savedTheme = localStorage.getItem("theme");
-        setTheme(savedTheme === "light");
-      });
+	// Load preference on page load
+	window.addEventListener("DOMContentLoaded", () => {
+		const savedTheme = localStorage.getItem("theme");
+		setTheme(savedTheme === "light");
+	});
     </script>
   </body>
 </html>
