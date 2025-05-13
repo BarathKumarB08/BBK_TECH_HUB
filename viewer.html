@@ -38,8 +38,11 @@
     <pre id="text-content">Loading...</pre>
 
     <script>
+	  console.log("window.location.search :" + window.location.search);
       const params = new URLSearchParams(window.location.search);
+	  console.log("params :" + params);
       const file = params.get("file");
+	  console.log("file :" + file);
 
       const titleEl = document.getElementById("file-title");
       const contentEl = document.getElementById("text-content");
@@ -55,19 +58,23 @@
             .replace(/\s+/g, " ")
             .trim()
         );
+		console.log("displayName :" + displayName)
         titleEl.textContent = displayName;
 
         const rawUrl = `https://raw.githubusercontent.com/BarathKumarB08/BBK_TECH_HUB/main/${file}`;
-
+		console.log("rawUrl :" + rawUrl)
         fetch(rawUrl)
           .then((response) => {
             if (!response.ok) throw new Error("File not found");
             return response.text();
           })
           .then((text) => {
+		  console.log("text :" + text)
             contentEl.textContent = text;
           })
           .catch((err) => {
+		  console.log("err :" + err)
+		  console.log("errMsg :" + err.message)
             contentEl.textContent = "Error loading file.";
           });
       } else {
