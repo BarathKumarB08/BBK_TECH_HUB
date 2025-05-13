@@ -1,2 +1,3 @@
 # BBK_TECH_HUB
-Created with CodeSandbox
+
+The Technical Notes can be accessed using this [Link](https://barathkumarb08.github.io/BBK_TECH_HUB/index.html)
